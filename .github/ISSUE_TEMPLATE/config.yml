@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Troubleshooting guide
+    url: https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/09-troubleshooting.md
+    about: Start here — most "still dark" cases are covered.
+  - name: 🪟 Windows Server guide
+    url: https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/06-windows-server.md
+    about: Drivers, active adapters, resolution and headless/RDP.
+  - name: 🔌 Hardware, cables & adapters
+    url: https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/08-hardware-cables-adapters.md
+    about: Active vs passive DP adapters, KVMs, alternative outputs.
+  - name: ❓ FAQ
+    url: https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/12-faq.md
+    about: Common questions answered.

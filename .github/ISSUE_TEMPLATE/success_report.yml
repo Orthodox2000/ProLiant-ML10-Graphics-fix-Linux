@@ -1,0 +1,58 @@
+name: Success report (it worked on another machine)
+description: Add your board / distro / monitor to the compatibility matrices.
+title: "[success] <system> on <OS>"
+labels: ["success story", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! These reports are how the compatibility matrices in
+        [docs/05-distro-guide.md](https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/05-distro-guide.md)
+        and
+        [docs/08-hardware-cables-adapters.md](https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/08-hardware-cables-adapters.md)
+        grow. A PR adding a row is even better.
+
+  - type: input
+    id: hardware
+    attributes:
+      label: System + GPU
+      placeholder: "e.g. Dell OptiPlex 7040, Intel HD Graphics 530 (8086:1912)"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS + version + kernel
+      placeholder: "e.g. Fedora 41, kernel 6.11"
+    validations:
+      required: true
+
+  - type: input
+    id: cable
+    attributes:
+      label: Cable / adapter
+      placeholder: "e.g. active DP -> HDMI"
+
+  - type: input
+    id: mode
+    attributes:
+      label: Resolution achieved
+      placeholder: "e.g. 1920x1080 @ 60 Hz"
+
+  - type: textarea
+    id: params
+    attributes:
+      label: Kernel parameters / steps that worked
+      render: shell
+      placeholder: |
+        video=HDMI-A-1:1920x1080@60e i915.enable_dc=0 ...
+        (or: installed Intel driver 15.45.x on Server 2022)
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything notable
+      placeholder: "e.g. needed the second DP port; monitor EDID read fine with an active adapter"

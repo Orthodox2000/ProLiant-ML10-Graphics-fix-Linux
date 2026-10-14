@@ -7,6 +7,7 @@ These regenerate the documentation artefacts in the repository.
 | [`build-pdf.sh`](build-pdf.sh) | `docs/dist/ProLiant-ML10-Graphics-fix.pdf` + an intermediate `.html` | `python3` with the `markdown` module, Google Chrome/Chromium |
 | [`make-screenshots.sh`](make-screenshots.sh) | `assets/screenshots/*.png` | `python3`, Google Chrome/Chromium |
 | [`make-banner.sh`](make-banner.sh) | `assets/social-preview.png` (1280×640) | Google Chrome/Chromium |
+| [`make-social.sh`](make-social.sh) | `assets/linkedin/linkedin-1200x627.png` and `linkedin-1080x1080.png` | Google Chrome/Chromium |
 
 Both are also wired into the top-level `Makefile`:
 
@@ -14,7 +15,8 @@ Both are also wired into the top-level `Makefile`:
 make pdf          # rebuild the PDF
 make screenshots  # rebuild the terminal screenshots
 make banner       # rebuild the social-preview banner
-make docs         # all three
+make social       # rebuild the LinkedIn images
+make docs         # all of the above
 ```
 
 ## `build-pdf.sh`

@@ -1,0 +1,105 @@
+name: Bug report / "it didn't work"
+description: Report a display problem or a script failure.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Before filing, please skim
+        [docs/09-troubleshooting.md](https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux/blob/main/docs/09-troubleshooting.md).
+
+        On Linux, the fastest way to give us everything is:
+
+        ```bash
+        bash scripts/linux/i915-collect.sh /tmp/i915
+        ```
+
+        then attach `/tmp/i915/i915-report.txt` and `i915-prevboot-kernel.log`.
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware (system + GPU)
+      placeholder: "e.g. HP ProLiant ML10 Gen9, Intel HD Graphics P530 (8086:191d)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux (distro + version)
+        - Windows (10/11)
+        - Windows Server
+        - FreeBSD / pfSense / TrueNAS CORE
+        - Proxmox / TrueNAS SCALE / Unraid
+        - VMware ESXi
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: Exact OS version / kernel
+      placeholder: "e.g. Linux Mint 22.3, kernel 6.8.0-45-generic"
+    validations:
+      required: true
+
+  - type: input
+    id: cable
+    attributes:
+      label: Cable / adapter chain
+      description: Be specific about passive vs active adapters.
+      placeholder: "e.g. DP -> DVI (passive) -> HDMI cable -> monitor"
+    validations:
+      required: true
+
+  - type: input
+    id: monitor
+    attributes:
+      label: Monitor + native resolution
+      placeholder: "e.g. 1366x768 @ 60 Hz"
+
+  - type: textarea
+    id: cmdline
+    attributes:
+      label: Kernel command line (Linux) / driver state (Windows)
+      description: Paste `cat /proc/cmdline` and `grep i915 /proc/modules`, or the Windows adapter name.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What actually happens
+      placeholder: "e.g. black screen with a flickering cursor; only 1024x768; i915 not loaded"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you already tried
+      placeholder: "e.g. removed nomodeset, ran apply with video=HDMI-A-1:1366x768@60e, ..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / report
+      description: Attach or paste the i915-collect report, dmesg, or journalctl output.
+      render: shell
+    validations:
+      required: false

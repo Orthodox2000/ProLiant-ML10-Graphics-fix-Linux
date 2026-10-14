@@ -8,7 +8,8 @@
 #   make pdf        -> build docs/dist/ProLiant-ML10-Graphics-fix.pdf
 #   make screenshots-> regenerate assets/screenshots/*.png
 #   make banner     -> regenerate assets/social-preview.png
-#   make docs       -> pdf + screenshots + banner
+#   make social     -> regenerate assets/linkedin/*.png
+#   make docs       -> pdf + screenshots + banner + social
 #   make install    -> install the Linux toolkit to /usr/local/sbin (needs root)
 #   make uninstall  -> remove it
 #   make clean      -> remove build artifacts
@@ -26,7 +27,7 @@ MINGW ?= x86_64-w64-mingw32-gcc
 WIN_OUT := scripts/windows/DisplayFix.exe
 WIN_SRC := scripts/windows/src/DisplayFix.c
 
-.PHONY: all lint shellcheck windows pdf screenshots banner docs install uninstall clean help
+.PHONY: all lint shellcheck windows pdf screenshots banner social docs install uninstall clean help
 
 all: lint
 
@@ -68,7 +69,10 @@ screenshots:
 banner:
 	bash scripts/doc/make-banner.sh
 
-docs: pdf screenshots banner
+social:
+	bash scripts/doc/make-social.sh
+
+docs: pdf screenshots banner social
 
 ## --- install ---------------------------------------------------------------
 
