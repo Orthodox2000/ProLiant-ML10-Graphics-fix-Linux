@@ -5,6 +5,9 @@
 #   make windows    -> build scripts/windows/DisplayFix.exe (needs mingw-w64)
 #   make lint       -> bash -n on all shell scripts
 #   make shellcheck -> run shellcheck on all shell scripts (if installed)
+#   make pdf        -> build docs/dist/ProLiant-ML10-Graphics-fix.pdf
+#   make screenshots-> regenerate assets/screenshots/*.png
+#   make docs       -> pdf + screenshots
 #   make install    -> install the Linux toolkit to /usr/local/sbin (needs root)
 #   make uninstall  -> remove it
 #   make clean      -> remove build artifacts
@@ -15,13 +18,14 @@ SBINDIR ?= $(PREFIX)/sbin
 
 LINUX_SH := $(wildcard scripts/linux/*.sh)
 FREEBSD_SH := $(wildcard scripts/freebsd/*.sh)
-ALL_SH := $(LINUX_SH) $(FREEBSD_SH) install.sh
+DOC_SH := $(wildcard scripts/doc/*.sh)
+ALL_SH := $(LINUX_SH) $(FREEBSD_SH) $(DOC_SH) install.sh
 
 MINGW ?= x86_64-w64-mingw32-gcc
 WIN_OUT := scripts/windows/DisplayFix.exe
 WIN_SRC := scripts/windows/src/DisplayFix.c
 
-.PHONY: all lint shellcheck windows install uninstall clean help
+.PHONY: all lint shellcheck windows pdf screenshots docs install uninstall clean help
 
 all: lint
 
@@ -52,6 +56,16 @@ $(WIN_OUT): $(WIN_SRC)
 	@command -v x86_64-w64-mingw32-strip >/dev/null 2>&1 && x86_64-w64-mingw32-strip $@ || true
 	@echo "Built $@"; sha256sum $@ 2>/dev/null || true
 
+## --- documentation ---------------------------------------------------------
+
+pdf:
+	bash scripts/doc/build-pdf.sh
+
+screenshots:
+	bash scripts/doc/make-screenshots.sh
+
+docs: pdf screenshots
+
 ## --- install ---------------------------------------------------------------
 
 install:
@@ -69,4 +83,4 @@ clean:
 	rm -f $(WIN_OUT)
 
 help:
-	@sed -n '2,12p' $(MAKEFILE_LIST) | sed 's/^# \{0,1\}//'
+	@sed -n '2,13p' $(MAKEFILE_LIST) | sed 's/^# \{0,1\}//'

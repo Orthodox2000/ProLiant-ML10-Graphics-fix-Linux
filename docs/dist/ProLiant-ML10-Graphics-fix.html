@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="file:///home/sarvadnya/ProLiant-ML10-Graphics-fix-Linux/">
+<title>HP ProLiant ML10 Gen9 - Graphics / Display Fix</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  html { font-size: 10.5pt; }
+  body { font-family: "DejaVu Sans", Arial, sans-serif; color: #1b1b1b;
+         line-height: 1.45; margin: 0; }
+  h1, h2, h3, h4 { font-family: "DejaVu Sans", Arial, sans-serif;
+                    color: #102a43; line-height: 1.2; }
+  h1 { font-size: 20pt; border-bottom: 2px solid #0d6efd; padding-bottom: 4px; }
+  h2 { font-size: 15pt; margin-top: 1.4em; border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 2px; }
+  h3 { font-size: 12.5pt; margin-top: 1.1em; }
+  code, pre, kbd { font-family: "DejaVu Sans Mono", "Courier New", monospace; }
+  code { background: #f1f3f5; padding: 0 3px; border-radius: 3px; font-size: 0.92em; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 10px 12px;
+         border-radius: 6px; overflow-x: auto; font-size: 8.6pt; line-height: 1.35;
+         page-break-inside: avoid; }
+  pre code { background: none; color: inherit; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 0.7em 0;
+           font-size: 9pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #cbd5e1; padding: 4px 7px; text-align: left;
+            vertical-align: top; }
+  th { background: #e8f0fe; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  blockquote { margin: 0.7em 0; padding: 6px 12px; border-left: 4px solid #0d6efd;
+                background: #f1f5f9; color: #334155; }
+  a { color: #0d6efd; text-decoration: none; }
+  img, svg { max-width: 100%; }
+  hr { border: none; border-top: 1px solid #cbd5e1; margin: 1.4em 0; }
+  .doc { page-break-before: always; }
+  .cover { text-align: center; padding-top: 40mm; }
+  .cover h1 { border: none; font-size: 28pt; color: #0d6efd; }
+  .cover .sub { font-size: 13pt; color: #334155; margin-top: 6px; }
+  .cover .meta { margin-top: 28mm; font-size: 10pt; color: #64748b; }
+  .cover img { width: 92%; margin-top: 14mm; }
+  .toc { page-break-before: always; }
+  .toc ol { font-size: 11pt; line-height: 1.7; }
+  .toc a { color: #102a43; }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1>HP ProLiant ML10 Gen9</h1>
+  <div class="sub">Graphics &amp; Display Fix &mdash; Linux, Windows Server &amp; more</div>
+  <div class="sub" style="font-size:11pt;color:#475569">
+    Intel HD Graphics P530 &nbsp;&bull;&nbsp; DP&rarr;DVI&rarr;HDMI &nbsp;&bull;&nbsp;
+    root cause, fix, scripts, verification
+  </div>
+  <img src="assets/architecture.svg" alt="signal chain diagram">
+  <div class="meta">
+    Generated 2026-10-14<br>
+    https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux<br>
+    MIT License
+  </div>
+</div>
+
+<div class="toc">
+  <h1>Contents</h1>
+  <ol>
+  <li><a href="#doc-README">HP ProLiant ML10 Gen9 — Graphics / Display Fix (Linux, Windows Server &amp; more)</a></li>
+<li><a href="#doc-QUICKSTART">QUICKSTART</a></li>
+<li><a href="#doc-docs-01-problem-statement">1. Problem statement</a></li>
+<li><a href="#doc-docs-02-diagnosis-and-evidence">2. Diagnosis &amp; evidence</a></li>
+<li><a href="#doc-docs-03-root-cause">3. Root cause</a></li>
+<li><a href="#doc-docs-04-linux-solution">4. Linux solution (the fix)</a></li>
+<li><a href="#doc-docs-05-distro-guide">5. Distribution &amp; bootloader guide</a></li>
+<li><a href="#doc-docs-06-windows-server">6. Windows Server &amp; Windows (10/11)</a></li>
+<li><a href="#doc-docs-07-other-os">7. Other operating systems</a></li>
+<li><a href="#doc-docs-08-hardware-cables-adapters">8. Hardware, cables, adapters &amp; alternative solutions</a></li>
+<li><a href="#doc-docs-09-troubleshooting">9. Troubleshooting</a></li>
+<li><a href="#doc-docs-10-verification">10. Verification</a></li>
+<li><a href="#doc-docs-11-reference">11. Reference</a></li>
+<li><a href="#doc-docs-12-faq">12. FAQ</a></li>
+<li><a href="#doc-CHANGELOG">Changelog</a></li>
+  </ol>
+</div>
+
+<section id="doc-README" class="doc">
+<h1 id="hp-proliant-ml10-gen9-graphics-display-fix-linux-windows-server-more">HP ProLiant ML10 Gen9 — Graphics / Display Fix (Linux, Windows Server &amp; more)</h1>
+<blockquote>
+<p><strong>Symptom:</strong> the onboard Intel graphics (HD Graphics <strong>P530</strong>, <code>8086:191d</code>)
+works fine under <code>nomodeset</code> only at a fixed <strong>1024×768</strong>, but as soon as you
+remove <code>nomodeset</code> — or on Windows Server — the display goes <strong>black / “no
+signal”</strong>. This repository is the complete, tested, documented fix: root-cause
+analysis, ready-to-run scripts for many distributions, Windows Server
+instructions, hardware/cable alternatives, and full troubleshooting.</p>
+</blockquote>
+<p>Tested reference machine: <strong>HPE ProLiant ML10 Gen9</strong>, Xeon E3-1225 v5,
+2× DisplayPort 1.2, monitor over <strong>DP → DVI → HDMI</strong>, Linux Mint 22.x.
+Result: <strong>1366×768 @ 60 Hz</strong> with full hardware acceleration.</p>
+<blockquote>
+<p>📄 <strong>New here?</strong> Read <a href="QUICKSTART.md"><strong>QUICKSTART.md</strong></a> first.
+🖨️ <strong>Printable / offline:</strong> <a href="docs/dist/ProLiant-ML10-Graphics-fix.pdf"><strong>docs/dist/ProLiant-ML10-Graphics-fix.pdf</strong></a>
+(all documentation in one 49-page PDF) — see <a href="#screenshots">Screenshots</a>.</p>
+</blockquote>
+<hr />
+<h2 id="tldr-the-fix">TL;DR — the fix</h2>
+<p>The machine needs <code>i915</code> (the Intel KMS driver) to own the display, and the
+output must be <strong>force-enabled</strong> because the DP→DVI→HDMI adapter chain does not
+pass EDID reliably:</p>
+<pre><code># Linux kernel command line (remove nomodeset, add):
+i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 \
+i915.enable_dp_mst=0 i915.disable_power_well=0 \
+video=HDMI-A-1:1366x768@60e
+</code></pre>
+<p>Run the toolkit and let it do it for you:</p>
+<pre><code class="language-bash">./scripts/linux/i915-display-fix.sh status      # inspect
+./scripts/linux/i915-display-fix.sh detect      # find your connector + mode
+sudo ./scripts/linux/i915-display-fix.sh apply  # apply permanently
+sudo reboot
+</code></pre>
+<p>On <strong>Windows Server / Windows</strong> there is no kernel command line — you install
+the Intel graphics driver and (if needed) use an <em>active</em> DisplayPort adapter.
+See <strong><a href="docs/06-windows-server.md">docs/06-windows-server.md</a></strong>.</p>
+<hr />
+<h2 id="table-of-contents">Table of contents</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Document</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="docs/01-problem-statement.md">Problem statement</a></td>
+<td>Symptoms, affected hardware, scope</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="docs/02-diagnosis-and-evidence.md">Diagnosis &amp; evidence</a></td>
+<td>How it was found, commands, real logs</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="docs/03-root-cause.md">Root cause</a></td>
+<td><code>nomodeset</code>, EDID/GMBUS, DDI B dual-name, Skylake power wells</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="docs/04-linux-solution.md">Linux solution</a></td>
+<td>The fix, step-by-step, every parameter explained</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="docs/05-distro-guide.md">Distro &amp; bootloader guide</a></td>
+<td>Ubuntu, Debian, Mint, Fedora, RHEL, Arch, openSUSE, NixOS, systemd-boot</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="docs/06-windows-server.md">Windows Server / Windows</a></td>
+<td>Drivers, resolution, active adapter, RDP, PowerShell, .exe</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="docs/07-other-os.md">Other OSes</a></td>
+<td>FreeBSD, Proxmox/ESXi, TrueNAS, pfSense/OPNsense, illumos</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="docs/08-hardware-cables-adapters.md">Hardware, cables &amp; adapters</a></td>
+<td>Active vs passive DP, adapters, KVMs, alternative outputs</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="docs/09-troubleshooting.md">Troubleshooting</a></td>
+<td>Decision tree for “still dark”, wrong resolution, etc.</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="docs/10-verification.md">Verification</a></td>
+<td>Prove it worked, on any OS</td>
+</tr>
+<tr>
+<td>11</td>
+<td><a href="docs/11-reference.md">Reference</a></td>
+<td>Kernel params, <code>video=</code> syntax, <code>drm.debug</code>, glossary</td>
+</tr>
+<tr>
+<td>12</td>
+<td><a href="docs/12-faq.md">FAQ</a></td>
+<td>Sharp questions and answers</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="repository-layout">Repository layout</h2>
+<pre><code>ProLiant-ML10-Graphics-fix-Linux/
+├── README.md                        ← you are here
+├── QUICKSTART.md                    ← 60-second version
+├── LICENSE                          ← MIT
+├── CHANGELOG.md
+├── Makefile                         ← build .exe, PDF, screenshots, lint
+├── install.sh                       ← install Linux toolkit to /usr/local/sbin
+├── docs/                            ← the full write-up (see table above)
+│   └── dist/                        ← generated PDF + HTML (all docs combined)
+├── scripts/
+│   ├── linux/
+│   │   ├── i915-display-fix.sh      ← portable toolkit (detect/apply/revert/discover)
+│   │   ├── i915-collect.sh          ← gather diagnostics from a failing boot
+│   │   ├── finalize-i915.sh         ← one-shot, non-interactive apply
+│   │   └── README.md
+│   ├── windows/
+│   │   ├── Get-GraphicsInfo.ps1     ← inventory GPU + displays
+│   │   ├── Set-DisplayResolution.ps1← set resolution / list modes
+│   │   ├── Install-IntelGraphicsDriver.ps1
+│   │   ├── Fix-Display.bat          ← double-click wrapper
+│   │   ├── DisplayFix.exe           ← prebuilt native tool
+│   │   ├── src/DisplayFix.c         ← source of the tiny native .exe
+│   │   └── README.md
+│   ├── freebsd/
+│   │   ├── i915-freebsd.sh
+│   │   └── README.md
+│   └── doc/
+│       ├── build-pdf.sh             ← Markdown -&gt; HTML -&gt; Chrome -&gt; PDF
+│       └── make-screenshots.sh      ← render real output as terminal PNGs
+├── examples/                        ← real logs/cmdlines from the reference machine
+├── assets/
+│   ├── architecture.svg             ← signal-chain diagram
+│   └── screenshots/                 ← generated terminal captures
+└── .github/workflows/ci.yml         ← shellcheck + syntax + Windows build CI
+</code></pre>
+<hr />
+<h2 id="why-this-repository-exists">Why this repository exists</h2>
+<p>The ML10 Gen9 is a cheap, quiet Xeon tower with <strong>two DisplayPort 1.2 outputs</strong>
+on the motherboard and <strong>no HDMI</strong>. Most people connect a monitor meant for HDMI
+through a cheap <strong>DP→DVI→HDMI</strong> (or DP→HDMI) adapter. The result is a machine that
+“has no video” under a real graphics driver. Every forum answer says one of:</p>
+<ul>
+<li>“Use <code>nomodeset</code>” → you get 1024×768 forever and no GPU acceleration;</li>
+<li>“Use an active adapter” → correct, but nobody explains <em>why</em>, or how to make a
+  passive one work;</li>
+<li>“The ML10 has no iGPU support” → <strong>false</strong>, the P530 is fully supported.</li>
+</ul>
+<p>This repository documents the actual technical cause and gives a <strong>software fix
+that works with a passive adapter</strong>, plus the hardware fix if you prefer it, on
+<strong>every OS we could test or verify</strong>.</p>
+<hr />
+<h2 id="screenshots">Screenshots</h2>
+<p>Everything below is the <strong>real output of the reference machine</strong>, captured with
+<a href="scripts/doc/make-screenshots.sh"><code>scripts/doc/make-screenshots.sh</code></a> (it runs the
+commands and rasterises their output — nothing is mocked up).</p>
+<table>
+<thead>
+<tr>
+<th>Toolkit status (<code>i915-display-fix.sh status</code>)</th>
+<th>Connector detection (<code>… detect</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="toolkit status" src="assets/screenshots/01-status.png" /></td>
+<td><img alt="connector detection" src="assets/screenshots/02-detect.png" /></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>X outputs (<code>xrandr</code>)</th>
+<th>Hardware acceleration (<code>glxinfo</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="xrandr" src="assets/screenshots/03-xrandr.png" /></td>
+<td><img alt="glxinfo" src="assets/screenshots/04-acceleration.png" /></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Proof of a correct setup</strong> — <code>nomodeset</code> gone, <code>i915</code> loaded, one connector
+enabled at 1366×768:</p>
+<p><img alt="proof of a correct setup" src="assets/screenshots/05-proof.png" /></p>
+<p><strong>Windows Server / Windows</strong> — the tools you run there
+(see <a href="docs/06-windows-server.md"><code>docs/06-windows-server.md</code></a>):</p>
+<p><img alt="windows tools" src="assets/screenshots/06-windows.png" /></p>
+<blockquote>
+<p>The signal-chain diagram at the top of the
+<a href="docs/dist/ProLiant-ML10-Graphics-fix.pdf">PDF</a> is
+<a href="assets/architecture.svg"><code>assets/architecture.svg</code></a>.</p>
+</blockquote>
+<hr />
+<h2 id="affected-similar-hardware">Affected / similar hardware</h2>
+<p>Anything with these Intel generations behaves the same way over a passive
+DP→DVI/HDMI chain:</p>
+<table>
+<thead>
+<tr>
+<th>Generation</th>
+<th>iGPU examples</th>
+<th>PCI IDs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Skylake</strong> (this repo)</td>
+<td>HD Graphics <strong>P530</strong>, 530, Iris 540/550</td>
+<td><code>191d</code>, <code>1912</code>, <code>1916</code>, <code>1926/27</code></td>
+</tr>
+<tr>
+<td>Broadwell</td>
+<td>HD 5500/5600, Iris Pro 6200</td>
+<td><code>1616</code>, <code>1622</code>, <code>1626</code></td>
+</tr>
+<tr>
+<td>Kaby Lake</td>
+<td>HD 630, Iris Plus 640/650</td>
+<td><code>5912</code>, <code>5916</code>, <code>5926</code></td>
+</tr>
+<tr>
+<td>Coffee Lake</td>
+<td>UHD 630</td>
+<td><code>3e92</code>, <code>3e9b</code></td>
+</tr>
+<tr>
+<td>Comet/Tiger Lake</td>
+<td>UHD/Iris Xe</td>
+<td><code>9b41</code>, <code>9a49</code></td>
+</tr>
+</tbody>
+</table>
+<p>The same <code>nomodeset</code> + EDID-force-enable technique applies to all of them.</p>
+<hr />
+<h2 id="safety">Safety</h2>
+<ul>
+<li>Every script is <strong>non-destructive by default</strong> and keeps timestamped backups
+  (<code>/var/backups/i915-display-fix/</code>).</li>
+<li>A guaranteed <strong>recovery boot entry</strong> (<code>nomodeset</code>) is always left in place, so
+  a bad change is never permanent.</li>
+<li><code>apply --dry-run</code> shows exactly what will change and touches nothing.</li>
+</ul>
+<blockquote>
+<p>⚠️ The scripts edit the bootloader configuration. Read the relevant docs first,
+and keep a way to reach a console (physical keyboard or SSH enabled beforehand)
+if you are changing display settings on a machine you cannot see.</p>
+</blockquote>
+<hr />
+<h2 id="license">License</h2>
+<p>MIT — see <a href="LICENSE">LICENSE</a>. Not affiliated with HPE or Intel. Use at your own
+risk; no warranty.</p>
+<h2 id="contributing">Contributing</h2>
+<p>Tested this on another board, distro or monitor? Please open a PR updating the
+matrices in <code>docs/05-distro-guide.md</code> and <code>docs/08-hardware-cables-adapters.md</code>.</p>
+</section><section id="doc-QUICKSTART" class="doc">
+<h1 id="quickstart">QUICKSTART</h1>
+<p>The 60‑second version. Full detail lives in <a href="docs/"><code>docs/</code></a> and
+<a href="README.md"><code>README.md</code></a>.</p>
+<hr />
+<h2 id="what-this-fixes">What this fixes</h2>
+<p>HP ProLiant <strong>ML10 Gen9</strong> (Intel <strong>HD Graphics P530</strong>) shows <strong>no signal / black
+screen</strong>, or is stuck at a fixed 1024×768, when the monitor is connected through
+the motherboard's <strong>DisplayPort</strong> via a <strong>DP → DVI → HDMI</strong> adapter.</p>
+<p><strong>Cause:</strong> the passive adapter hides the monitor's EDID, so the driver never
+enables the output. <code>nomodeset</code> "works" only by abandoning the GPU entirely.</p>
+<hr />
+<h2 id="linux-3-commands">Linux — 3 commands</h2>
+<pre><code class="language-bash">cd scripts/linux
+./i915-display-fix.sh detect                 # tells you the connector + mode
+sudo ./i915-display-fix.sh apply             # applies it permanently
+sudo reboot
+</code></pre>
+<p>If the screen is <strong>dark right now</strong> and you don't know the connector name:</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh discover          # adds a safe &quot;no nomodeset&quot; GRUB entry
+sudo reboot                                  # pick &quot;i915 DISCOVER&quot; at the menu
+./i915-display-fix.sh detect                 # then apply with what it prints
+</code></pre>
+<p>Verify after rebooting:</p>
+<pre><code class="language-bash">./i915-display-fix.sh status
+</code></pre>
+<p>Revert any time:</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh revert
+</code></pre>
+<hr />
+<h2 id="the-raw-kernel-parameters-any-distro">The raw kernel parameters (any distro)</h2>
+<p>Remove <code>nomodeset</code>; add these to the kernel command line:</p>
+<pre><code>i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e
+</code></pre>
+<ul>
+<li>Replace <strong><code>HDMI-A-1</code></strong> with your connector (<code>DP-1</code> if the monitor is native DP).</li>
+<li>Replace <strong><code>1366x768</code></strong> with your monitor's native resolution.</li>
+<li>Keep the trailing <strong><code>e</code></strong> (force-enable even when "disconnected").</li>
+<li><strong>Never</strong> force both <code>DP-1</code> and <code>HDMI-A-1</code> — they are the <em>same</em> physical port.</li>
+</ul>
+<p>Per‑distro regeneration: see <a href="docs/05-distro-guide.md"><code>docs/05-distro-guide.md</code></a>.</p>
+<hr />
+<h2 id="windows-windows-server">Windows / Windows Server</h2>
+<p>There is no kernel command line — install the <strong>Intel graphics driver</strong> and, if
+the monitor still isn't detected, use an <strong>active</strong> DP→HDMI adapter.</p>
+<pre><code class="language-cmd">Fix-Display.bat info          :: are you on the Basic Display Adapter?
+Fix-Display.bat list          :: supported modes
+Fix-Display.bat set 1366 768  :: set + persist a mode
+Fix-Display.bat best          :: highest mode the display reports
+</code></pre>
+<p>Full guide: <a href="docs/06-windows-server.md"><code>docs/06-windows-server.md</code></a>.</p>
+<hr />
+<h2 id="other-oses">Other OSes</h2>
+<table>
+<thead>
+<tr>
+<th>OS</th>
+<th>Quick fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FreeBSD / pfSense / TrueNAS CORE</td>
+<td><code>i915kms_load="YES"</code> in <code>/boot/loader.conf</code> (<a href="scripts/freebsd/i915-freebsd.sh">script</a>)</td>
+</tr>
+<tr>
+<td>Proxmox / TrueNAS SCALE / Unraid</td>
+<td>Linux fix above</td>
+</tr>
+<tr>
+<td>VMware ESXi</td>
+<td>manage over the network (no iGPU driver)</td>
+</tr>
+</tbody>
+</table>
+<p>Details: <a href="docs/07-other-os.md"><code>docs/07-other-os.md</code></a>.</p>
+<hr />
+<h2 id="always-works-the-hardware-fix">Always works: the hardware fix</h2>
+<p>A <strong>passive</strong> DP→HDMI/DVI plug cannot pass EDID. An <strong>active</strong> one can, and then
+Linux, Windows and FreeBSD all just work — no software changes needed.
+See <a href="docs/08-hardware-cables-adapters.md"><code>docs/08-hardware-cables-adapters.md</code></a>.</p>
+<hr />
+<h2 id="install-the-toolkit-systemwide-optional">Install the toolkit system‑wide (optional)</h2>
+<pre><code class="language-bash">sudo ./install.sh        # installs to /usr/local/sbin
+sudo i915-display-fix status
+</code></pre>
+<h2 id="need-help">Need help?</h2>
+<ul>
+<li>Still dark → <a href="docs/09-troubleshooting.md"><code>docs/09-troubleshooting.md</code></a></li>
+<li>Prove it worked → <a href="docs/10-verification.md"><code>docs/10-verification.md</code></a></li>
+<li>Collect a report to share → <code>bash scripts/linux/i915-collect.sh /tmp/i915</code></li>
+</ul>
+</section><section id="doc-docs-01-problem-statement" class="doc">
+<h1 id="1-problem-statement">1. Problem statement</h1>
+<h2 id="11-summary">1.1 Summary</h2>
+<p>On an <strong>HPE ProLiant ML10 Gen9</strong> with the onboard <strong>Intel HD Graphics P530</strong>
+(<code>8086:191d</code>), a monitor connected through the motherboard's <strong>DisplayPort</strong> —
+in practice nearly always via a <strong>DP → DVI → HDMI</strong> or <strong>DP → HDMI</strong> adapter —
+does not produce a picture under a normal Linux graphics stack.</p>
+<p>Two distinct behaviours are reported:</p>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nomodeset</code> on the kernel command line (the “safe” default)</td>
+<td>Boots to a <strong>fixed 1024×768</strong> desktop. No GPU acceleration. Resolution cannot be changed in software.</td>
+</tr>
+<tr>
+<td><code>nomodeset</code> removed (“normal” boot)</td>
+<td><strong>Black screen / “no signal”</strong> from the motherboard. Sometimes a dark mouse cursor flickers in a corner.</td>
+</tr>
+<tr>
+<td>Windows Server / Windows</td>
+<td>Often <strong>no display at all</strong> after driver install, or a “generic” 640×480 desktop.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-why-people-hit-this">1.2 Why people hit this</h2>
+<p>The ML10 Gen9 motherboard exposes <strong>two DisplayPort 1.2</strong> connectors and <strong>no
+HDMI/DVI/VGA</strong>. The overwhelming majority of monitors in this price bracket are
+HDMI. So the realistic chain is:</p>
+<pre><code>[motherboard DP] ──► [DP→DVI plug] ──► [DVI→HDMI cable] ──► [monitor HDMI]
+</code></pre>
+<p>At least three things are wrong with that chain on this hardware:</p>
+<ol>
+<li><strong><code>nomodeset</code> is not a resolution fix</strong> — it disables kernel mode-setting
+   entirely, leaving you with the firmware’s fixed framebuffer.</li>
+<li><strong>EDID (the monitor’s “capabilities chip”) is not passed reliably</strong> through
+   cheap passive adapters, so the driver cannot see that a monitor is attached.</li>
+<li>On Intel, a <strong>dual-mode (“DP++”) port appears twice</strong>: once under its DP name
+   (<code>DP-1</code>) and once under its HDMI name (<code>HDMI-A-1</code>). Force-enabling the wrong
+   one, or both, makes the driver fight itself.</li>
+</ol>
+<h2 id="13-scope-of-this-repository">1.3 Scope of this repository</h2>
+<p>In scope:</p>
+<ul>
+<li>Every Linux distribution we can cover with a bootloader-based fix (GRUB and
+  systemd-boot), including per-distro commands.</li>
+<li>Windows Server 2012 R2 → 2025 and Windows 10/11.</li>
+<li>FreeBSD and the common virtualisation/“NAS” platforms.</li>
+<li>Hardware alternatives (active adapters, KVMs, alternative connectors).</li>
+</ul>
+<p>Out of scope (documented only):</p>
+<ul>
+<li>Reflashing the BIOS/firmware.</li>
+<li>Adding a discrete GPU.</li>
+<li>Multi-monitor tiling edge cases.</li>
+</ul>
+<h2 id="14-reference-hardware-used-for-every-measurement-here">1.4 Reference hardware (used for every measurement here)</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System</td>
+<td>HPE ProLiant ML10 Gen9 (<code>ML10Gen9</code>), BIOS 1.010</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>Intel Xeon E3-1225 v5 @ 3.30 GHz (4 cores, VT-x)</td>
+</tr>
+<tr>
+<td>iGPU</td>
+<td>Intel HD Graphics <strong>P530</strong>, PCI <code>8086:191d</code>, subsystem <code>8086:2212</code></td>
+</tr>
+<tr>
+<td>Display outputs</td>
+<td>2 × DisplayPort 1.2 (DP++ capable, per VBT)</td>
+</tr>
+<tr>
+<td>Display</td>
+<td>1366×768 monitor on HDMI</td>
+</tr>
+<tr>
+<td>Cable chain</td>
+<td>DP → DVI plug → DVI→HDMI cable → monitor</td>
+</tr>
+<tr>
+<td>OS (reference)</td>
+<td>Linux Mint 22.3, kernel 7.0.0-38-generic, Mesa 25.x</td>
+</tr>
+<tr>
+<td>Other kernels tested</td>
+<td>6.14-generic (RHEL/Debian-style naming irrelevant)</td>
+</tr>
+</tbody>
+</table>
+<p>Raw captures live in <a href="../examples/"><code>../examples/</code></a>.</p>
+</section><section id="doc-docs-02-diagnosis-and-evidence" class="doc">
+<h1 id="2-diagnosis-evidence">2. Diagnosis &amp; evidence</h1>
+<p>This is the actual investigation that produced the fix, in order, with the real
+commands and their outputs. You can reproduce every step on your own ML10.</p>
+<h2 id="21-identify-the-gpu-and-driver">2.1 Identify the GPU and driver</h2>
+<pre><code class="language-console">$ lspci -nnk | grep -A3 -iE 'VGA|Display'
+00:02.0 VGA compatible controller [0300]: Intel Corporation HD Graphics P530 [8086:191d] (rev 06)
+        DeviceName:  Onboard IGD
+        Subsystem: Intel Corporation HD Graphics P530 [8086:2212]
+        Kernel driver in use: i915
+</code></pre>
+<p>So the hardware <em>is</em> supported by <code>i915</code>. (<code>00:02.0</code> is the standard location of
+the Intel iGPU.)</p>
+<h2 id="22-confirm-what-is-actually-driving-the-display">2.2 Confirm what is <em>actually</em> driving the display</h2>
+<pre><code class="language-console">$ cat /proc/cmdline
+... ro quiet splash nomodeset
+$ grep -w i915 /proc/modules || echo &quot;i915 NOT loaded&quot;
+i915 NOT loaded
+$ lsmod | grep -E 'i915|simpledrm'
+simpledrm    ...
+</code></pre>
+<p>With <code>nomodeset</code>, only the <strong>firmware framebuffer</strong> (<code>simpledrm</code>) is active. That
+is why the resolution is fixed and unchangeable: nothing is programming the CRTC.</p>
+<h2 id="23-prove-that-nomodeset-is-the-blocker">2.3 Prove that <code>nomodeset</code> is the blocker</h2>
+<pre><code class="language-console">$ sudo modprobe i915
+modprobe: ERROR: could not insert 'i915': No such device
+</code></pre>
+<p><code>i915</code> refuses to bind <strong>while <code>nomodeset</code> is active</strong> — it is not a missing
+driver, it is a kernel policy flag (<code>video_firmware_drivers_only()</code>), and it is
+<strong>boot-time only</strong>. No amount of <code>rmmod</code>/<code>modprobe</code> will fix it; you must change
+the kernel command line and reboot.</p>
+<h2 id="24-look-at-the-connector-the-firmware-left-enabled">2.4 Look at the connector the firmware left enabled</h2>
+<p>Booting once <strong>without</strong> <code>nomodeset</code> and with verbose DRM logging
+(<code>drm.debug=0x1e</code>) makes <code>i915</code> speak. Two things jump out.</p>
+<h3 id="a-the-port-really-is-dual-mode">(a) The port really is dual-mode</h3>
+<pre><code>i915 ... [drm:intel_bios_init] Port B VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+i915 ... [drm:intel_bios_init] Port C VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+i915 ... [drm:intel_bios_init] Port D VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+</code></pre>
+<p><code>DP++:1</code> on ports B/C/D means the GPU <strong>can</strong> emit TMDS (DVI/HDMI) through a
+passive adapter. The adapter is not the (only) problem.</p>
+<h3 id="b-edid-does-not-come-through-cleanly">(b) EDID does not come through cleanly</h3>
+<pre><code>i915 ... [drm:intel_hdmi_set_edid] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+i915 ... [drm:intel_hdmi_set_edid] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+...
+</code></pre>
+<p>Hundreds of these. The GMBUS (hardware DDC) read fails; the kernel falls back to
+<strong>bit-banging</strong> the DDC lines, which is slow and racy at boot. If it loses the
+race, the connector is treated as “disconnected” and the output stays dark.</p>
+<h3 id="c-a-dual-mode-port-has-two-names">(c) A dual-mode port has TWO names</h3>
+<pre><code>i915 ... [drm:intel_dp_init_connector]   Adding DP connector on [ENCODER:109:DDI B/PHY B]
+i915 ... [drm:intel_hdmi_init_connector] Adding HDMI connector on [ENCODER:109:DDI B/PHY B]
+...
+i915 ... [CONNECTOR:120:HDMI-A-1] hw state readout: enabled
+</code></pre>
+<p><code>DP-1</code> and <code>HDMI-A-1</code> are the <strong>same physical port</strong> (DDI B). The BIOS left
+<code>HDMI-A-1</code> enabled, i.e. that is the connector your cable is on.</p>
+<h2 id="25-the-first-wrong-fix-and-why-it-failed">2.5 The first, wrong “fix” — and why it failed</h2>
+<p>Forcing <strong>all</strong> candidate connectors:</p>
+<pre><code>video=DP-1:1366x768@60e video=DP-2:1366x768@60e \
+video=HDMI-A-1:1366x768@60e video=HDMI-A-2:1366x768@60e
+</code></pre>
+<p>produced <strong>“signal, but a black screen with a flickering cursor”</strong>. The kernel
+explains why:</p>
+<pre><code>i915 ... [drm:handle_conflicting_encoders] [ENCODER:109:DDI B/PHY B] in use on
+        [CRTC:58:pipe A], disabling [CONNECTOR:120:HDMI-A-1]
+i915 ... [drm:update_connector_routing] Disabling [CONNECTOR:110:DP-1]
+</code></pre>
+<p><code>DP-1</code> grabbed the DDI B encoder, so the driver <strong>kept disabling the real monitor</strong>
+(<code>HDMI-A-1</code>). Xorg then saw four outputs (two of them phantom) and set them all to
+640×480 — hence black screen, occasional cursor.</p>
+<h2 id="26-the-correct-fix">2.6 The correct fix</h2>
+<p>Force <strong>only the connector that matches the cable</strong>:</p>
+<pre><code>video=HDMI-A-1:1366x768@60e
+</code></pre>
+<p>Result on the reference machine:</p>
+<pre><code class="language-console">$ cat /proc/cmdline
+... quiet splash i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 \
+    i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e
+
+$ head -1 /sys/class/drm/card1-HDMI-A-1/modes
+1366x768
+$ xrandr | grep connected
+HDMI-1 connected primary 1366x768+0+0 ...
+$ glxinfo | grep 'OpenGL renderer'
+OpenGL renderer string: Mesa Intel(R) HD Graphics P530 (SKL GT2)
+</code></pre>
+<h2 id="27-evidence-files-in-this-repo">2.7 Evidence files in this repo</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../examples/lspci-gpu.txt"><code>examples/lspci-gpu.txt</code></a></td>
+<td>GPU + driver</td>
+</tr>
+<tr>
+<td><a href="../examples/cpu.txt"><code>examples/cpu.txt</code></a></td>
+<td>CPU flags</td>
+</tr>
+<tr>
+<td><a href="../examples/system.txt"><code>examples/system.txt</code></a></td>
+<td>Board + BIOS</td>
+</tr>
+<tr>
+<td><a href="../examples/working-cmdline.txt"><code>examples/working-cmdline.txt</code></a></td>
+<td>The working kernel line</td>
+</tr>
+<tr>
+<td><a href="../examples/drm-connectors-working.txt"><code>examples/drm-connectors-working.txt</code></a></td>
+<td>Connector states</td>
+</tr>
+<tr>
+<td><a href="../examples/xrandr-working.txt"><code>examples/xrandr-working.txt</code></a></td>
+<td>X outputs + modes</td>
+</tr>
+<tr>
+<td><a href="../examples/i915-vbt-ports.txt"><code>examples/i915-vbt-ports.txt</code></a></td>
+<td>DP++ proof</td>
+</tr>
+<tr>
+<td><a href="../examples/i915-edid-noise.txt"><code>examples/i915-edid-noise.txt</code></a></td>
+<td>EDID/GMBUS failure</td>
+</tr>
+<tr>
+<td><a href="../examples/i915-encoder-conflict.txt"><code>examples/i915-encoder-conflict.txt</code></a></td>
+<td>The dual-name trap</td>
+</tr>
+<tr>
+<td><a href="../examples/modeline-1366x768.txt"><code>examples/modeline-1366x768.txt</code></a></td>
+<td>Mode timings</td>
+</tr>
+<tr>
+<td><a href="../examples/modinfo-i915.txt"><code>examples/modinfo-i915.txt</code></a></td>
+<td>Module info</td>
+</tr>
+</tbody>
+</table>
+<p>To gather the same data on your machine, run
+<a href="../scripts/linux/i915-collect.sh"><code>scripts/linux/i915-collect.sh</code></a>.</p>
+</section><section id="doc-docs-03-root-cause" class="doc">
+<h1 id="3-root-cause">3. Root cause</h1>
+<p>Four independent facts combine into the failure. Understanding them tells you
+which fix will work and which will not.</p>
+<h2 id="31-nomodeset-is-a-global-boot-time-kill-switch">3.1 <code>nomodeset</code> is a global, boot-time kill switch</h2>
+<p><code>nomodeset</code> sets the kernel variable <code>video_firmware_drivers_only()</code>. While it is
+set, <strong>DRM/KMS drivers are not allowed to take over</strong> the display; only the
+firmware’s simple framebuffer (<code>simpledrm</code>, driven by the BIOS GOP) is used.</p>
+<p>Consequences:</p>
+<ul>
+<li>Resolution is whatever the firmware set at boot — here <strong>1024×768</strong> — and
+  cannot be changed.</li>
+<li>No hardware acceleration; the desktop runs on software rendering (<code>llvmpipe</code>).</li>
+<li><code>modprobe i915</code> fails with <code>No such device</code> (the driver declines to probe).</li>
+<li><strong>It cannot be undone at runtime.</strong> It is read once at boot.</li>
+</ul>
+<pre><code class="language-mermaid">flowchart LR
+  A[kernel cmdline] --&gt;|has nomodeset| B[video_firmware_drivers_only = true]
+  B --&gt; C[i915 refuses to bind]
+  C --&gt; D[simpledrm / fixed 1024x768]
+  A --&gt;|no nomodeset| E[i915 binds]
+  E --&gt; F[KMS: real modes, acceleration]
+</code></pre>
+<h2 id="32-edid-does-not-survive-the-dpdvihdmi-chain">3.2 EDID does not survive the DP→DVI→HDMI chain</h2>
+<p>EDID is the small data block a monitor exposes over the DDC channel (I²C). The
+driver needs it to know the monitor exists and what modes it supports.</p>
+<p>On Intel, DDC is normally read through <strong>GMBUS</strong> (a hardware I²C controller).
+Cheap passive adapters — and even some active ones — break or degrade DDC, so:</p>
+<pre><code>intel_hdmi_set_edid: HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+</code></pre>
+<p>appears hundreds of times. The fallback (bit-banging GPIO) is slow and, during
+early boot, often loses the race with the desktop starting. When that happens the
+connector is reported <strong>disconnected</strong> → the output is never turned on → <strong>“no
+signal”</strong>.</p>
+<blockquote>
+<p>This is why the <em>hardware</em> fix is “use an active adapter” (it regenerates DDC),
+and why the <em>software</em> fix is “force the connector on and tell the driver the
+mode” so it does not need EDID at all.</p>
+</blockquote>
+<h2 id="33-a-dual-mode-dp-port-has-two-names">3.3 A dual-mode (DP++) port has two names</h2>
+<p>Intel DP++ ports can carry native DisplayPort <strong>or</strong> TMDS (DVI/HDMI) depending on
+what is plugged in. Because of that, the driver registers <strong>two connectors on one
+physical port</strong>, e.g.:</p>
+<pre><code>port DDI B ──┬── connector DP-1        (native DP)
+             └── connector HDMI-A-1    (DP++ / TMDS)
+</code></pre>
+<p>The BIOS leaves the one matching the actual cable enabled. On the reference
+machine <code>hd state readout: enabled</code> was on <strong><code>HDMI-A-1</code></strong>, so the cable is on the
+DP++ path in HDMI mode.</p>
+<p><strong>Trap:</strong> force-enabling <em>both</em> names makes two connectors share one encoder:</p>
+<pre><code>handle_conflicting_encoders: [DDI B/PHY B] in use on pipe A, disabling HDMI-A-1
+</code></pre>
+<p>…and the driver disables the real monitor in a loop. This produces the notorious
+“signal present, black screen, flashing cursor”.</p>
+<h2 id="34-skylake-era-power-management-can-blank-an-output">3.4 Skylake-era power management can blank an output</h2>
+<p>Skylake’s display engine has aggressive power features that are known to cause
+black screens / flicker on external adapters:</p>
+<ul>
+<li><strong>DC states</strong> (display C-states) — <code>i915.enable_dc</code></li>
+<li><strong>PSR</strong> (Panel Self Refresh) — <code>i915.enable_psr</code></li>
+<li><strong>FBC</strong> (Frame Buffer Compression) — <code>i915.enable_fbc</code></li>
+<li><strong>Power wells</strong> — <code>i915.disable_power_well</code></li>
+</ul>
+<p>Disabling them (as this repo does) trades a little idle power for stability. On a
+desktop/server that is the right trade.</p>
+<h2 id="35-minimal-working-condition">3.5 Minimal working condition</h2>
+<p>Putting it together, the display lights up iff <strong>all</strong> of these are true:</p>
+<ol>
+<li><code>nomodeset</code> is <strong>absent</strong> (so <code>i915</code> binds).</li>
+<li>The correct <strong>connector name</strong> is force-enabled (<code>video=&lt;name&gt;:&lt;mode&gt;e</code>),
+   compensating for the missing EDID.</li>
+<li>A <strong>supported mode</strong> is requested (here 1366×768@60).</li>
+<li>Optionally, Skylake power features are disabled for stability.</li>
+</ol>
+<p>Note that (2) is only necessary because of (3.2). With a good <strong>active adapter</strong>,
+plain boot without <code>video=</code> usually works, because EDID is readable.</p>
+</section><section id="doc-docs-04-linux-solution" class="doc">
+<h1 id="4-linux-solution-the-fix">4. Linux solution (the fix)</h1>
+<p>This document is the canonical, step-by-step procedure. It assumes GRUB (the
+default on Ubuntu/Mint/Debian/Fedora/Arch/openSUSE); systemd-boot and
+distro-specific commands are in <a href="05-distro-guide.md">05-distro-guide.md</a>.</p>
+<blockquote>
+<p><strong>Two ways to run it:</strong> the automated toolkit
+(<a href="../scripts/linux/i915-display-fix.sh"><code>scripts/linux/i915-display-fix.sh</code></a>),
+or the manual steps below. Both do exactly the same thing.</p>
+</blockquote>
+<hr />
+<h2 id="41-automated-recommended">4.1 Automated (recommended)</h2>
+<pre><code class="language-bash">cd scripts/linux
+chmod +x i915-display-fix.sh
+
+# 1. Inspect the current state (read-only, safe):
+./i915-display-fix.sh status
+
+# 2. If i915 is running, it can tell you the connector + mode:
+./i915-display-fix.sh detect
+#    -&gt; &quot;Apply it with: sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768&quot;
+
+# 3. Preview, then apply:
+sudo ./i915-display-fix.sh apply --dry-run
+sudo ./i915-display-fix.sh apply
+
+# 4. Reboot (do NOT touch the menu; it auto-boots the fixed entry):
+sudo reboot
+</code></pre>
+<p>If the machine is currently dark and you do not know the connector name, use the
+two-phase workflow in <a href="09-troubleshooting.md#93-a-the-screen-is-dark-and-i-dont-know-the-connector-name">09-troubleshooting.md</a>.</p>
+<hr />
+<h2 id="42-manual-grub-the-exact-steps">4.2 Manual (GRUB) — the exact steps</h2>
+<h3 id="step-1-find-the-connector-name">Step 1 — Find the connector name</h3>
+<p>If you can already boot to a desktop with <code>nomodeset</code>, you still cannot see the
+real connector name (only <code>Unknown-1</code> from <code>simpledrm</code>). The reliable way is to
+boot once <strong>without</strong> <code>nomodeset</code> and read the state, even if the screen is dark:</p>
+<pre><code class="language-bash"># after booting without nomodeset, over SSH or a second console:
+for c in /sys/class/drm/*/status; do
+  echo &quot;$(basename &quot;$(dirname &quot;$c&quot;)&quot;): $(cat &quot;$c&quot;)&quot;
+done
+</code></pre>
+<p>You want the connector whose status is <code>connected</code> — typically <code>HDMI-A-1</code> or
+<code>DP-1</code>. (If nothing is <code>connected</code>, see the discover workflow.)</p>
+<h3 id="step-2-edit-etcdefaultgrub">Step 2 — Edit <code>/etc/default/grub</code></h3>
+<pre><code class="language-bash">sudo cp -a /etc/default/grub /etc/default/grub.bak-$(date +%Y%m%d-%H%M%S)
+sudo nano /etc/default/grub
+</code></pre>
+<p>Change the line:</p>
+<pre><code class="language-diff">-GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet splash nomodeset&quot;
++GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet splash i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e&quot;
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Delete <code>nomodeset</code>.</li>
+<li><code>HDMI-A-1</code> → your connector name from Step 1.</li>
+<li><code>1366x768</code> → your monitor’s native resolution (see
+  <a href="10-verification.md#102-finding-your-native-resolution">10-verification.md</a>).</li>
+<li>Keep the <code>e</code> suffix (force-enable even if “disconnected”).</li>
+</ul>
+<p>Optional, to make the menu visible long enough to reach a recovery entry:</p>
+<pre><code class="language-diff">+GRUB_TIMEOUT_STYLE=menu
++GRUB_TIMEOUT=10
+</code></pre>
+<h3 id="step-3-regenerate-the-grub-config">Step 3 — Regenerate the GRUB config</h3>
+<p>Debian/Ubuntu/Mint:</p>
+<pre><code class="language-bash">sudo update-grub
+</code></pre>
+<p>Fedora/RHEL/openSUSE:</p>
+<pre><code class="language-bash">sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+</code></pre>
+<p>Arch:</p>
+<pre><code class="language-bash">sudo grub-mkconfig -o /boot/grub/grub.cfg
+</code></pre>
+<h3 id="step-4-add-a-recovery-entry-strongly-recommended">Step 4 — Add a recovery entry (strongly recommended)</h3>
+<p>Create <code>/etc/grub.d/42_i915_fix_recovery</code> (mode <code>0755</code>) so you always have a
+one-keystroke way back to a working 1024×768 desktop:</p>
+<pre><code class="language-bash">KREL=$(uname -r)
+UUID=$(findmnt -no UUID /)
+sudo tee /etc/grub.d/42_i915_fix_recovery &gt;/dev/null &lt;&lt;EOF
+#!/bin/sh
+exec tail -n +3 \$0
+menuentry &quot;Recovery - safe graphics (nomodeset)&quot; --class gnu-linux --class os {
+    recordfail
+    load_video
+    set gfxpayload=keep
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+    search --no-floppy --fs-uuid --set=root $UUID
+    linux  /boot/vmlinuz-$KREL root=UUID=$UUID ro quiet splash nomodeset
+    initrd /boot/initrd.img-$KREL
+}
+EOF
+sudo chmod 755 /etc/grub.d/42_i915_fix_recovery
+sudo update-grub
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>Never</strong> leave <code>*.bak</code> copies inside <code>/etc/grub.d/</code>. GRUB executes every
+executable file in that directory, and a backup containing a <code>menuentry</code> line
+becomes a <strong>duplicate menu entry</strong>. Keep backups in <code>/root/</code> or
+<code>/var/backups/</code>.</p>
+</blockquote>
+<h3 id="step-5-reboot-and-verify">Step 5 — Reboot and verify</h3>
+<pre><code class="language-bash">sudo reboot
+# after it comes back:
+cat /proc/cmdline
+xrandr | grep connected         # expect &quot;&lt;name&gt; connected primary 1366x768+0+0&quot;
+</code></pre>
+<hr />
+<h2 id="43-what-each-parameter-does">4.3 What each parameter does</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Effect</th>
+<th>Why it is here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>(remove)</em> <code>nomodeset</code></td>
+<td>Lets <code>i915</code> bind</td>
+<td><strong>The</strong> essential change</td>
+</tr>
+<tr>
+<td><code>video=HDMI-A-1:1366x768@60e</code></td>
+<td>Force-enable connector + mode</td>
+<td>Works around missing EDID</td>
+</tr>
+<tr>
+<td><code>i915.enable_dc=0</code></td>
+<td>Disable display C-states</td>
+<td>Skylake analog power glitches</td>
+</tr>
+<tr>
+<td><code>i915.enable_psr=0</code></td>
+<td>Disable Panel Self Refresh</td>
+<td>No panel here; avoids blanking</td>
+</tr>
+<tr>
+<td><code>i915.enable_fbc=0</code></td>
+<td>Disable frame-buffer compression</td>
+<td>Avoids flicker on adapters</td>
+</tr>
+<tr>
+<td><code>i915.enable_dp_mst=0</code></td>
+<td>Disable DP Multi-Stream</td>
+<td>No MST hub; simplifies link setup</td>
+</tr>
+<tr>
+<td><code>i915.disable_power_well=0</code></td>
+<td>Keep power wells always on</td>
+<td>Maximum stability</td>
+</tr>
+</tbody>
+</table>
+<p>Only <code>nomodeset</code>-removal and the <code>video=</code> token are strictly required in most
+cases. The <code>i915.*</code> flags are belt-and-braces stability; drop them if you prefer
+default power behaviour and it still works.</p>
+<hr />
+<h2 id="44-reverting">4.4 Reverting</h2>
+<pre><code class="language-bash">sudo cp -a /etc/default/grub.bak-&lt;timestamp&gt; /etc/default/grub
+sudo rm -f /etc/grub.d/42_i915_fix_recovery
+sudo update-grub
+sudo reboot
+</code></pre>
+<p>Or with the toolkit:</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh revert
+</code></pre>
+<hr />
+<h2 id="45-changing-the-resolution-later">4.5 Changing the resolution later</h2>
+<p>Temporarily (current session):</p>
+<pre><code class="language-bash">xrandr --output HDMI-1 --mode 1366x768
+</code></pre>
+<p>Permanently: change <code>1366x768</code> in the <code>video=</code> token and re-run Step 3, or add an
+Xorg configuration / a desktop startup command (see
+<a href="05-distro-guide.md#persisting-the-resolution-in-x">05-distro-guide.md</a>).</p>
+</section><section id="doc-docs-05-distro-guide" class="doc">
+<h1 id="5-distribution-bootloader-guide">5. Distribution &amp; bootloader guide</h1>
+<p>The toolkit edits the <strong>bootloader</strong>, so one script covers every GRUB-based and
+systemd-boot-based distribution. <code>status</code> and <code>detect</code> are read-only and safe
+everywhere; <code>apply</code>/<code>revert</code>/<code>discover</code> need root.</p>
+<table>
+<thead>
+<tr>
+<th>OS / family</th>
+<th>Versions covered</th>
+<th>Bootloader</th>
+<th>Regeneration command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ubuntu / Linux Mint / Pop!_OS / elementary / Zorin</td>
+<td>20.04, 22.04, 24.04, LM 20–22</td>
+<td>GRUB</td>
+<td><code>update-grub</code></td>
+</tr>
+<tr>
+<td>Debian</td>
+<td>10, 11, 12, 13</td>
+<td>GRUB</td>
+<td><code>update-grub</code></td>
+</tr>
+<tr>
+<td>Fedora / RHEL / CentOS Stream / Rocky / Alma</td>
+<td>8, 9, 10</td>
+<td>GRUB2</td>
+<td><code>grub2-mkconfig -o /boot/grub2/grub.cfg</code></td>
+</tr>
+<tr>
+<td>Arch / Manjaro / EndeavourOS</td>
+<td>rolling</td>
+<td>GRUB <strong>or</strong> systemd-boot</td>
+<td><code>grub-mkconfig -o /boot/grub/grub.cfg</code></td>
+</tr>
+<tr>
+<td>openSUSE Leap / Tumbleweed / SLES</td>
+<td>15.x</td>
+<td>GRUB2</td>
+<td><code>grub2-mkconfig -o /boot/grub2/grub.cfg</code></td>
+</tr>
+<tr>
+<td>NixOS</td>
+<td>any</td>
+<td>GRUB/systemd-boot</td>
+<td>declarative (<code>configuration.nix</code>)</td>
+</tr>
+<tr>
+<td>Void / Gentoo / Alpine</td>
+<td>any</td>
+<td>various</td>
+<td>manual</td>
+</tr>
+</tbody>
+</table>
+<p>The script auto-detects the distribution (<code>/etc/os-release</code>), the correct
+regeneration tool, and the GRUB config path. <strong>Kernel version does not matter</strong> —
+only <code>uname -r</code> is used to locate the image for the optional recovery entry.</p>
+<hr />
+<h2 id="51-ubuntu-linux-mint-debian-pop_os">5.1 Ubuntu / Linux Mint / Debian / Pop!_OS</h2>
+<pre><code class="language-bash">./i915-display-fix.sh detect
+sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+sudo reboot
+</code></pre>
+<p>Equivalent manual edit of <code>/etc/default/grub</code>:</p>
+<pre><code>GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet splash i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e&quot;
+</code></pre>
+<p>then <code>sudo update-grub</code>.</p>
+<h2 id="52-fedora-rhel-rocky-almalinux-centos-stream">5.2 Fedora / RHEL / Rocky / AlmaLinux / CentOS Stream</h2>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+# or, the distro-native way:
+sudo grubby --update-kernel=ALL --remove-args=nomodeset \
+  --args='i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e'
+</code></pre>
+<ul>
+<li><strong>UEFI and BIOS both work.</strong> The GRUB config on UEFI Fedora is still
+  <code>/boot/grub2/grub.cfg</code> (the <code>EFI/fedora/grub.cfg</code> file is a stub that loads it).</li>
+<li><code>grubby</code> is present on RHEL-family systems and is the safest option; it edits
+  all kernel entries at once.</li>
+<li>After a <strong>kernel update</strong>, <code>grubby --update-kernel=ALL</code> persists, but a plain
+  <code>grub2-mkconfig</code> edit of <code>/etc/default/grub</code> also persists. Both are fine.</li>
+</ul>
+<h2 id="53-arch-manjaro-endeavouros">5.3 Arch / Manjaro / EndeavourOS</h2>
+<p>Detect which bootloader you use:</p>
+<pre><code class="language-bash">[ -d /boot/loader/entries ] &amp;&amp; echo systemd-boot || echo grub
+</code></pre>
+<p>GRUB:</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+</code></pre>
+<p>systemd-boot (the toolkit edits <code>/boot/loader/entries/*.conf</code>):</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+</code></pre>
+<p>Manual equivalent — edit the <code>options</code> line of your entry, e.g.
+<code>/boot/loader/entries/arch.conf</code>:</p>
+<pre><code>options root=UUID=... rw quiet i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e
+</code></pre>
+<p>Add a recovery entry by copying the file and appending <code>nomodeset</code>:</p>
+<pre><code class="language-bash">sudo cp /boot/loader/entries/arch.conf /boot/loader/entries/arch-recovery.conf
+sudo sed -i 's/$/ nomodeset/' /boot/loader/entries/arch-recovery.conf
+</code></pre>
+<h2 id="54-opensuse-leap-tumbleweed-sles">5.4 openSUSE Leap / Tumbleweed / SLES</h2>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+# manual:
+sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=&quot;... video=HDMI-A-1:1366x768@60e&quot;/' /etc/default/grub
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+</code></pre>
+<p>YaST → <em>Boot Loader</em> → <em>Kernel Parameters</em> also works if you prefer a GUI.</p>
+<h2 id="55-nixos-declarative-the-script-cannot-edit-it-safely">5.5 NixOS (declarative — the script cannot edit it safely)</h2>
+<p>In <code>/etc/nixos/configuration.nix</code>:</p>
+<pre><code class="language-nix">{
+  boot.kernelParams = [
+    &quot;i915.enable_dc=0&quot;
+    &quot;i915.enable_psr=0&quot;
+    &quot;i915.enable_fbc=0&quot;
+    &quot;i915.enable_dp_mst=0&quot;
+    &quot;i915.disable_power_well=0&quot;
+    &quot;video=HDMI-A-1:1366x768@60e&quot;
+  ];
+  # keep several generations so you can roll back at the boot menu
+  boot.loader.grub.configurationLimit = 10;
+  # never put &quot;nomodeset&quot; here:
+  # boot.kernelParams = [ &quot;nomodeset&quot; ];   # &lt;-- do NOT do this
+}
+</code></pre>
+<p>Then <code>sudo nixos-rebuild switch</code>. Roll back with <code>nixos-rebuild switch --rollback</code>
+or by picking an older generation in the boot menu.</p>
+<h2 id="56-void-gentoo-alpine-and-other-bootloaders">5.6 Void / Gentoo / Alpine and other bootloaders</h2>
+<p><code>apply</code> prints the parameters to use and leaves the bootloader alone when it does
+not recognise it. Add these to your kernel command line:</p>
+<pre><code>i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0 i915.disable_power_well=0 video=HDMI-A-1:1366x768@60e
+</code></pre>
+<ul>
+<li><strong>Void:</strong> <code>/etc/default/grub</code> + <code>sudo update-grub</code> (same as Debian), or edit
+  <code>/boot/loader/entries/</code> for systemd-boot.</li>
+<li><strong>Gentoo:</strong> often a hand-written <code>/boot/grub/grub.cfg</code>; append the parameters to
+  the <code>linux</code> line.</li>
+<li><strong>Alpine:</strong> <code>/etc/update-extlinux.conf</code> (extlinux) or the GRUB config; append to
+  <code>default_kernel_opts</code> / the kernel line.</li>
+<li><strong>rEFInd:</strong> edit <code>/boot/refind_linux.conf</code>.</li>
+</ul>
+<hr />
+<h2 id="persisting-the-resolution-in-x">Persisting the resolution in X</h2>
+<p>The <code>video=</code> force sets the mode at boot, which is usually enough for GDM/SDDM/LightDM.
+If your desktop still starts at a lower mode, pin it per-user or system-wide.</p>
+<p><strong>Per-user (all desktops):</strong> add a desktop autostart script:</p>
+<pre><code class="language-bash">mkdir -p ~/.config/autostart
+cat &gt; ~/.config/autostart/i915-resolution.desktop &lt;&lt;'EOF'
+[Desktop Entry]
+Type=Application
+Name=Set 1366x768
+Exec=sh -c &quot;sleep 3; xrandr --output HDMI-1 --mode 1366x768 || xrandr --output HDMI-1 --auto&quot;
+X-GNOME-Autostart-enabled=true
+EOF
+</code></pre>
+<p><strong>System-wide (Xorg, all users):</strong> <code>/etc/X11/xorg.conf.d/20-i915-mode.conf</code>:</p>
+<pre><code>Section &quot;Monitor&quot;
+    Identifier &quot;HDMI-1&quot;
+    Option &quot;PreferredMode&quot; &quot;1366x768&quot;
+EndSection
+</code></pre>
+<p>(Requires the <code>modesetting</code> driver, which is the default for Intel.)</p>
+<p><strong>Wayland (GNOME/KDE):</strong> the kernel <code>video=</code> mode is honoured at boot; change the
+mode from the desktop’s Display settings.</p>
+</section><section id="doc-docs-06-windows-server" class="doc">
+<h1 id="6-windows-server-windows-1011">6. Windows Server &amp; Windows (10/11)</h1>
+<p>Windows does not use a kernel command line, so the Linux fix does not apply. The
+same machine, cable chain and failure show up differently here, and the solution
+is a combination of <strong>driver</strong> and <strong>hardware</strong> work.</p>
+<hr />
+<h2 id="61-why-windows-server-shows-nougly-video-on-this-box">6.1 Why Windows Server shows no/ugly video on this box</h2>
+<ol>
+<li>
+<p><strong>Windows Server ships a generic driver.</strong> Until a real graphics driver is
+   installed, Windows uses the <strong>Microsoft Basic Display Adapter</strong>
+   (<code>msbasicdisplay</code>). That adapter:
+   - ignores most of the GPU,
+   - caps the mode list to what the firmware/EDID provides,
+   - with a <strong>passive DP→DVI→HDMI chain that hides EDID</strong>, often leaves you at
+     <strong>640×480 or 1024×768</strong>.</p>
+</li>
+<li>
+<p><strong>Intel does not officially support consumer iGPUs on Windows Server.</strong> There
+   is no SKU of the HD Graphics P530 driver labelled “Windows Server 2022”.
+   The <strong>Windows 10/11 64-bit</strong> driver can usually still be installed manually
+   (“Have Disk”), but you must bypass the compatibility check.</p>
+</li>
+<li>
+<p><strong>The same EDID problem as Linux.</strong> The DP++ port is fine, but a passive
+   adapter can drop the DDC channel, so Windows cannot read the monitor. This is
+   the root of “640×480 only” and “no signal”.</p>
+</li>
+</ol>
+<blockquote>
+<p>Practical consequence: on Windows the <strong>single most effective fix is an
+<em>active</em> DisplayPort adapter</strong> (see
+<a href="08-hardware-cables-adapters.md">08-hardware-cables-adapters.md</a>). Driver
+installation gets you acceleration and correct modes; the adapter fixes
+detection.</p>
+</blockquote>
+<hr />
+<h2 id="62-solution-a-install-the-intel-graphics-driver-recommended-first-step">6.2 Solution A — install the Intel graphics driver (recommended first step)</h2>
+<h3 id="what-you-need">What you need</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU</td>
+<td>Intel HD Graphics <strong>P530</strong>, <code>VEN_8086&amp;DEV_191D</code></td>
+</tr>
+<tr>
+<td>Last Windows 10/11 x64 driver for Skylake (Gen9)</td>
+<td>Intel <strong>15.45.x</strong> series, e.g. <code>15.45.34.5174</code>, INF name <code>igdlh64.inf</code></td>
+</tr>
+<tr>
+<td>Alternative</td>
+<td>Intel <strong>DCH</strong> driver <code>31.0.101.x</code> (Skylake support is limited/vendor-specific)</td>
+</tr>
+<tr>
+<td>HP option</td>
+<td>Search HP support for “ML10 Gen9 Intel Graphics” SoftPaq (may cover Win Server 2012 R2/2016)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="method-1-device-manager-have-disk-works-on-server-201620192022">Method 1 — Device Manager “Have Disk” (works on Server 2016/2019/2022)</h3>
+<ol>
+<li>Download and <strong>extract</strong> the Intel driver package (<code>.exe</code> → run it and let it
+   extract to <code>C:\SWSetup\...</code>, or use 7-Zip; the <code>.inf</code> files are in a
+   subfolder such as <code>Graphics</code>).</li>
+<li><code>Device Manager</code> → <strong>Display adapters</strong> → <em>Microsoft Basic Display Adapter</em> →
+   <strong>Update driver</strong> → <strong>Browse my computer</strong> → <strong>Let me pick from a list</strong> →
+   <strong>Have Disk…</strong></li>
+<li>Point to <code>igdlh64.inf</code> in the extracted folder.</li>
+<li>Choose <strong>Intel(R) HD Graphics P530</strong> (or 530) and accept the compatibility
+   warning.</li>
+<li>Reboot. Verify:</li>
+</ol>
+<pre><code class="language-powershell">Get-CimInstance Win32_VideoController |
+  Select-Object Name, DriverVersion, CurrentHorizontalResolution, CurrentVerticalResolution
+</code></pre>
+<p>You want <code>Intel(R) HD Graphics ...</code> and your native resolution, not
+<code>Microsoft Basic Display Adapter</code>.</p>
+<blockquote>
+<p>If the INF refuses to install on Server 2022/2025 because of the OS version,
+either (a) use the Windows 10/11 driver of the <em>same WDDM generation</em>, or
+(b) temporarily enable <strong>test signing</strong> / driver signature enforcement
+bypass, install, then re-enable. Prefer (a).</p>
+</blockquote>
+<h3 id="method-2-pnputil-scriptable-no-gui">Method 2 — <code>pnputil</code> (scriptable, no GUI)</h3>
+<pre><code class="language-powershell"># Stage and install the INF (admin PowerShell):
+pnputil /add-driver &quot;C:\Drivers\Intel\Graphics\igdlh64.inf&quot; /install
+# If it installs as a package but does not bind:
+pnputil /enum-drivers | Select-String -Context 0,4 igdlh
+# then assign it in Device Manager, or:
+Get-PnpDevice -Class Display | Enable-PnpDevice -Confirm:$false
+</code></pre>
+<p><code>scripts/windows/Install-IntelGraphicsDriver.ps1</code> automates the staging and
+points out the manual Device Manager step if binding is refused.</p>
+<h3 id="method-3-hp-softpaq">Method 3 — HP SoftPaq</h3>
+<p>HP occasionally publishes a Windows Server graphics driver for the ML10 Gen9
+(usually for Server 2012 R2/2016). Check HP support by serial number; if it
+exists it installs cleanly with no compatibility hacks.</p>
+<hr />
+<h2 id="63-solution-b-fix-detection-the-edid-problem">6.3 Solution B — fix detection (the EDID problem)</h2>
+<p>Even with the right driver, a passive adapter can leave Windows unable to read
+the monitor. In order of preference:</p>
+<ol>
+<li><strong>Use an active DP adapter</strong> (see §6.4). This is the real fix and also helps
+   Linux.</li>
+<li><strong>Force a mode in the registry.</strong> Windows stores display configuration under:</li>
+</ol>
+<p><code>HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Configuration</code></p>
+<p>Each subkey holds a <code>PrimSurfSize.cx</code> / <code>PrimSurfSize.cy</code> and per-monitor
+   <code>ActiveSize.cx</code> / <code>.cy</code>. Setting them to <code>1366</code> / <code>768</code> and rebooting will make
+   Windows <em>try</em> that mode (it only sticks if the adapter/EDID allows it). Back up
+   the key first. This is a workaround, not a guarantee.
+3. <strong>Set the mode at logon</strong> with a script (see §6.5). Works when the mode exists
+   in the list but Windows picks a lower one.</p>
+<hr />
+<h2 id="64-solution-c-hardware-the-active-adapter">6.4 Solution C — hardware: the active adapter</h2>
+<p>HP documents that the ML10 Gen9 DisplayPorts expect an <strong>active</strong> DP adapter.
+Active adapters contain a level-shifter/converter chip (DisplayPort → TMDS) and
+regenerate DDC, so both Windows and Linux see a proper monitor.</p>
+<p>Buy one of:</p>
+<ul>
+<li><strong>Active DP → HDMI</strong> (the cleanest: one cable), or</li>
+<li><strong>Active DP → DVI</strong>, then a DVI→HDMI cable.</li>
+</ul>
+<p>Look for the words <strong>“active”</strong> / “DP++ to HDMI active” in the product listing.
+A passive “DP to HDMI” plug has no chip and will reproduce this exact bug.</p>
+<p>See <a href="08-hardware-cables-adapters.md">08-hardware-cables-adapters.md</a> for details
+and alternatives.</p>
+<hr />
+<h2 id="65-registry-powershell-resolution-control">6.5 Registry / PowerShell resolution control</h2>
+<h3 id="built-in-some-server-versions">Built-in (some Server versions)</h3>
+<pre><code class="language-powershell">Get-DisplayResolution           # if the cmdlet exists
+Set-DisplayResolution -Width 1366 -Height 768
+</code></pre>
+<p>(These cmdlets exist on Server Core in several Server releases; if <code>Get-Command</code>
+cannot find them, use the next method.)</p>
+<h3 id="portable-works-on-every-windows-server">Portable (works on every Windows / Server)</h3>
+<p>Use the provided scripts:</p>
+<pre><code class="language-powershell"># inventory: GPU, driver, monitors, and every mode each output supports
+powershell -ExecutionPolicy Bypass -File scripts\windows\Get-GraphicsInfo.ps1
+
+# list modes, then set one (uses ChangeDisplaySettingsEx via P/Invoke)
+powershell -ExecutionPolicy Bypass -File scripts\windows\Set-DisplayResolution.ps1 -List
+powershell -ExecutionPolicy Bypass -File scripts\windows\Set-DisplayResolution.ps1 -Width 1366 -Height 768
+</code></pre>
+<p>Or the tiny native tool (see §6.6):</p>
+<pre><code class="language-cmd">DisplayFix.exe --list
+DisplayFix.exe --set 1366 768
+DisplayFix.exe --best
+</code></pre>
+<h3 id="third-party-clis-if-you-prefer">Third-party CLIs (if you prefer)</h3>
+<ul>
+<li><strong>QRes</strong> (Anders Kjersem): <code>QRes.exe /x:1366 /y:768</code></li>
+<li><strong>NirCmd</strong> (NirSoft): <code>nircmd.exe setdisplay 1366 768 32</code></li>
+<li><strong>DisplayChanger</strong> (12noon): <code>dc64.exe -width=1366 -height=768</code></li>
+</ul>
+<p>These are convenient for logon scripts / Task Scheduler “At log on”.</p>
+<hr />
+<h2 id="66-the-displayfixexe-native-tool">6.6 The <code>DisplayFix.exe</code> native tool</h2>
+<p>Because a native binary is handy for logon scripts, unattended setups and
+Server Core, this repo includes its <strong>source</strong> and a build recipe:</p>
+<pre><code>scripts/windows/src/DisplayFix.c      # ~200 lines, Win32 only, no dependencies
+</code></pre>
+<p>Features:
+- <code>--list</code> — enumerate adapters and every supported mode.
+- <code>--set W H [Hz] [device]</code> — apply a mode and persist it (<code>CDS_UPDATEREGISTRY</code>).
+- <code>--best [Hz] [device]</code> — pick the highest mode the adapter reports.
+- <code>--current</code> — print the active mode.</p>
+<h3 id="build-it-on-any-linux-with-mingw-w64">Build it (on any Linux with mingw-w64)</h3>
+<pre><code class="language-bash">sudo apt-get install -y mingw-w64        # Debian/Ubuntu
+make windows                              # produces scripts/windows/DisplayFix.exe
+</code></pre>
+<p>or directly:</p>
+<pre><code class="language-bash">x86_64-w64-mingw32-gcc -O2 -municode -o DisplayFix.exe src/DisplayFix.c -lgdi32 -luser32
+</code></pre>
+<h3 id="build-it-on-windows">Build it on Windows</h3>
+<pre><code class="language-cmd">:: With Visual Studio (Developer Command Prompt):
+cl /O2 /DUNICODE /D_UNICODE DisplayFix.c user32.lib gdi32.lib /Fe:DisplayFix.exe
+:: With MinGW-w64 for Windows:
+gcc -O2 -municode -o DisplayFix.exe DisplayFix.c -lgdi32 -luser32
+</code></pre>
+<blockquote>
+<p>The repository ships the source; a pre-built binary may or may not be present
+depending on whether it was built (see <code>scripts/windows/README.md</code>). If absent,
+build it with the two commands above, or just use the PowerShell scripts, which
+need no compiler.</p>
+</blockquote>
+<hr />
+<h2 id="67-headless-remote-servers">6.7 Headless / remote servers</h2>
+<p>If the ML10 runs as a headless server, the physical console mode is mostly
+irrelevant — use <strong>RDP</strong>, which renders at the client’s resolution regardless of
+the local adapter:</p>
+<ul>
+<li>Enable: <code>Server Manager → Local Server → Remote Desktop</code>, or
+  <code>powershell
+  Set-ItemProperty 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
+  Enable-NetFirewallRule -DisplayGroup "Remote Desktop"</code></li>
+<li>For a server with <strong>no desktop experience</strong> and no GPU driver, RDP still gives
+  you a usable desktop at your chosen size.</li>
+</ul>
+<hr />
+<h2 id="68-windows-10-11-workstation">6.8 Windows 10 / 11 (workstation)</h2>
+<p>Simpler than Server:</p>
+<ol>
+<li>Let <strong>Windows Update</strong> install a graphics driver, or run the Intel
+   <strong>Driver &amp; Support Assistant</strong>.</li>
+<li>If the monitor is not detected through a passive adapter, install an <strong>active
+   DP adapter</strong>.</li>
+<li>Resolution: <em>Settings → System → Display</em>, or <code>DisplayFix.exe --best</code>.</li>
+</ol>
+<p>Windows 10/11 have full WDDM support and hardware acceleration for the P530 with
+the 15.45 or newer driver.</p>
+<hr />
+<h2 id="69-windows-checklist">6.9 Windows checklist</h2>
+<ul>
+<li>[ ] Confirm <code>Ven_8086&amp;Dev_191D</code> is present (Device Manager → Details → Hardware Ids).</li>
+<li>[ ] Install a real Intel driver (no more “Microsoft Basic Display Adapter”).</li>
+<li>[ ] Confirm EDID is read (monitor shows a name in Display settings, not “Generic PnP Monitor”).</li>
+<li>[ ] If not, replace the passive adapter with an <strong>active</strong> one.</li>
+<li>[ ] Pin the resolution (Display settings / script / <code>DisplayFix.exe</code>).</li>
+<li>[ ] For unattended servers, prefer RDP and ignore the physical console.</li>
+</ul>
+</section><section id="doc-docs-07-other-os" class="doc">
+<h1 id="7-other-operating-systems">7. Other operating systems</h1>
+<p>The root causes (EDID over a passive adapter; no <code>nomodeset</code> concept elsewhere)
+recur on every OS. Below is what to do on the platforms people actually run on an
+ML10 Gen9-class box.</p>
+<hr />
+<h2 id="71-freebsd">7.1 FreeBSD</h2>
+<p>FreeBSD uses the <strong><code>i915kms</code></strong> kernel module (a port of the Linux driver). There is
+no <code>nomodeset</code>.</p>
+<pre><code class="language-sh"># /boot/loader.conf
+i915kms_load=&quot;YES&quot;
+kern.vty=vt                 # use the new vt(4) console
+</code></pre>
+<p>Load immediately without rebooting:</p>
+<pre><code class="language-sh">kldload i915kms
+</code></pre>
+<p>Check:</p>
+<pre><code class="language-sh">pciconf -lv | grep -A4 vgapci
+sysctl kern.vty
+dmesg | grep -i i915
+</code></pre>
+<p>If the monitor is not detected through the adapter, force the mode:</p>
+<pre><code class="language-sh"># after X starts, or from a script:
+xrandr                 # list outputs (often HDMI-1 / DP-1)
+xrandr --output HDMI-1 --mode 1366x768
+</code></pre>
+<p>FreeBSD has no <code>video=</code> kernel token; use an <strong>active adapter</strong> for reliable
+detection, or an <code>/etc/X11/xorg.conf.d/</code> <code>PreferredMode</code> stanza as in Linux.</p>
+<p>A helper is provided: <a href="../scripts/freebsd/i915-freebsd.sh"><code>scripts/freebsd/i915-freebsd.sh</code></a>.</p>
+<hr />
+<h2 id="72-proxmox-ve-debian-hypervisor">7.2 Proxmox VE / Debian hypervisor</h2>
+<p>Proxmox is Debian under the hood → the <strong>Linux fix applies directly</strong>:</p>
+<pre><code class="language-bash">sudo ./scripts/linux/i915-display-fix.sh apply --connector HDMI-A-1 --mode 1366x768
+sudo reboot
+</code></pre>
+<p>If the host is headless, the local console barely matters; the fix is mainly so
+the boot console and any local login are usable.</p>
+<hr />
+<h2 id="73-vmware-esxi">7.3 VMware ESXi</h2>
+<p>ESXi is a hypervisor, not a desktop. The integrated GPU is not used; ESXi runs a
+VGA/EFI framebuffer at low resolution for its DCUI (“yellow console”). This is by
+design — you manage ESXi over the network (Host Client / vSphere).</p>
+<ul>
+<li>If the DCUI is unreadable through an adapter, add an <strong>active adapter</strong> or use
+  IPMI/remote management.</li>
+<li>Passing the iGPU to a VM (GTV-d / Intel GVT-g) is not supported on Skylake P530
+  in ESXi’s standard tooling; use a discrete GPU for that.</li>
+</ul>
+<hr />
+<h2 id="74-truenas-scale-core-unraid-omv">7.4 TrueNAS SCALE / CORE, Unraid, OMV</h2>
+<p>All are Linux:</p>
+<ul>
+<li><strong>TrueNAS SCALE / Unraid / OMV</strong> (Debian/RHEL-derived): run the Linux toolkit.
+  On TrueNAS SCALE the root filesystem is managed, but kernel parameters can be
+  added via the UI (System → Advanced → <strong>Kernel command line / sysctl</strong>) or
+  <code>/etc/default/grub</code> + <code>update-grub</code> from a shell.</li>
+<li><strong>TrueNAS CORE</strong> (FreeBSD): follow §7.1.</li>
+</ul>
+<p>For appliance-style NAS boxes with no keyboard/video session, the practical fix is
+again the <strong>active adapter</strong>.</p>
+<hr />
+<h2 id="75-pfsense-opnsense-freebsd">7.5 pfSense / OPNsense (FreeBSD)</h2>
+<p>Same as FreeBSD (§7.1): load <code>i915kms</code>, and force the mode if needed. These
+router images are usually headless; the console is only used once.</p>
+<hr />
+<h2 id="76-illumos-openindiana-smartos">7.6 illumos / OpenIndiana / SmartOS</h2>
+<p>Intel KMS support is limited/experimental. On Skylake P530 expect the generic VGA
+framebuffer. Use an active adapter, and drive the machine over the network. Not a
+supported display target.</p>
+<hr />
+<h2 id="77-chromeos-flex-other-linux-appliances">7.7 ChromeOS Flex / other Linux appliances</h2>
+<p>ChromeOS Flex uses the standard Intel graphics stack. Boot parameters are not
+user-editable in the usual way; rely on the <strong>active adapter</strong>.</p>
+<hr />
+<h2 id="78-dual-boot-multi-os-on-the-same-machine">7.8 Dual-boot / multi-OS on the same machine</h2>
+<p>Because the fix is per-OS, you can run Linux (fixed via kernel line) and
+Windows/Server (fixed via driver + adapter) side by side on the ML10 Gen9. The
+<strong>active adapter</strong> benefits every OS at once and is the recommended baseline.</p>
+<hr />
+<h2 id="79-summary-table">7.9 Summary table</h2>
+<table>
+<thead>
+<tr>
+<th>OS</th>
+<th>Mechanism</th>
+<th>Best fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux (any distro)</td>
+<td><code>i915</code> + <code>video=</code> on kernel cmdline</td>
+<td>This repo’s toolkit</td>
+</tr>
+<tr>
+<td>Windows / Server</td>
+<td>Intel WDDM driver</td>
+<td>Driver + <strong>active adapter</strong></td>
+</tr>
+<tr>
+<td>FreeBSD / pfSense / TrueNAS CORE</td>
+<td><code>i915kms</code></td>
+<td><code>i915kms_load=YES</code> (+ active adapter)</td>
+</tr>
+<tr>
+<td>Proxmox / TrueNAS SCALE / Unraid</td>
+<td>Linux</td>
+<td>Linux toolkit</td>
+</tr>
+<tr>
+<td>ESXi</td>
+<td>hypervisor framebuffer only</td>
+<td>Manage over network; active adapter for DCUI</td>
+</tr>
+<tr>
+<td>illumos</td>
+<td>limited KMS</td>
+<td>active adapter, manage over network</td>
+</tr>
+</tbody>
+</table>
+</section><section id="doc-docs-08-hardware-cables-adapters" class="doc">
+<h1 id="8-hardware-cables-adapters-alternative-solutions">8. Hardware, cables, adapters &amp; alternative solutions</h1>
+<p>Sometimes the cleanest fix is physical. This document explains the options and
+why they work.</p>
+<hr />
+<h2 id="81-what-the-ml10-gen9-actually-has">8.1 What the ML10 Gen9 actually has</h2>
+<p>The motherboard has <strong>2 × DisplayPort 1.2</strong> and <strong>no HDMI/DVI/VGA</strong>. Per the GPU
+VBT (see <a href="../examples/i915-vbt-ports.txt">examples/i915-vbt-ports.txt</a>), ports
+B/C/D are <strong>DP++</strong> (dual-mode), i.e. they can emit native DisplayPort <strong>or</strong> TMDS
+(DVI/HDMI) signals.</p>
+<p>Two implications:</p>
+<ol>
+<li>A <strong>passive</strong> DP→HDMI/DVI adapter is <em>electrically allowed</em> (DP++), which is
+   why the machine sometimes gives a picture at all.</li>
+<li>But passive adapters have no chip to regenerate <strong>DDC/EDID</strong>, so detection is
+   unreliable → the failure in this repo.</li>
+</ol>
+<blockquote>
+<p>HP’s own documentation for the ML10 Gen9 states the DP ports require an
+<strong>active</strong> dongle. This is the “official” hardware answer.</p>
+</blockquote>
+<hr />
+<h2 id="82-passive-vs-active-adapters">8.2 Passive vs active adapters</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Passive DP→HDMI/DVI</th>
+<th>Active DP→HDMI/DVI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chip inside</td>
+<td>none</td>
+<td>level shifter / protocol converter</td>
+</tr>
+<tr>
+<td>Works when source is DP++</td>
+<td>sometimes</td>
+<td>always</td>
+</tr>
+<tr>
+<td>Passes EDID/DDC reliably</td>
+<td>often <strong>no</strong></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Fixes this bug</td>
+<td>no</td>
+<td><strong>yes</strong></td>
+</tr>
+<tr>
+<td>Linux <code>video=</code> workaround needed</td>
+<td>yes</td>
+<td>usually not</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to tell them apart:</strong> active adapters are usually slightly larger, contain
+a chip, are labelled “active”, “DP++ to HDMI”, or explicitly “for NVIDIA/AMD/
+non-DP++”. A “DP to HDMI passive” plug is the one causing trouble.</p>
+<hr />
+<h2 id="83-recommended-cablesadapters">8.3 Recommended cables/adapters</h2>
+<p>In rough order of preference:</p>
+<ol>
+<li><strong>Active DP → HDMI cable/adapter</strong>, then a normal HDMI cable to the monitor.
+   One hop, EDID regenerated, works on the ML10 out of the box.</li>
+<li><strong>Active DP → DVI</strong>, then DVI→HDMI cable. Also fine; two hops but the active
+   DP→DVI regenerates DDC.</li>
+<li><strong>Active DP → VGA</strong> (if you must drive a VGA monitor; degrades quality).</li>
+<li><strong>USB graphics adapter</strong> (DisplayLink) — an entirely different path that
+   bypasses the iGPU output; requires drivers on every OS.</li>
+<li><strong>A monitor with DisplayPort</strong> — remove the adapters entirely; the cleanest of
+   all if you are buying hardware.</li>
+</ol>
+<p>Avoid: passive DP→HDMI/DVI plugs, “DP to HDMI” cables with no chip, unpowered
+KVMs with DP inputs that do not support DP++.</p>
+<hr />
+<h2 id="84-kvm-switches">8.4 KVM switches</h2>
+<p>Many KVM switches present a <strong>fake EDID</strong> to the computer so switching does not
+disturb the display. That is actually helpful here (it removes the EDID race).
+Caveats:</p>
+<ul>
+<li>A KVM that does <strong>not</strong> emulate EDID behaves like a bad adapter.</li>
+<li>Prefer KVMs advertised as “supports DP++ / EDID emulation”.</li>
+<li>Some KVMs force a low maximum mode (e.g. 1920×1080); verify it passes your
+  native resolution.</li>
+</ul>
+<hr />
+<h2 id="85-a-discrete-gpu-alternative">8.5 A discrete GPU alternative</h2>
+<p>If you need more outputs or guaranteed HDMI:</p>
+<ul>
+<li>Any cheap low-profile card (e.g. a GT 1030 / RX 6400 / Intel Arc A310) gives
+  native HDMI/DP and sidesteps the iGPU entirely.</li>
+<li>The ML10 Gen9 has one PCIe x16 slot (electrically x8/x16 depending on config)
+  and a modest PSU; check power and clearance first.</li>
+<li>On Windows Server this also often gets you a driver that actually installs,
+  because discrete vendors ship server-adjacent drivers.</li>
+</ul>
+<hr />
+<h2 id="86-biosfirmware-settings-worth-checking">8.6 BIOS/firmware settings worth checking</h2>
+<p>In the ML10 Gen9 BIOS (F10 at boot):</p>
+<ul>
+<li><strong>Embedded Video / Onboard VGA</strong> — ensure it is enabled (there is no discrete
+  GPU, so this should default on).</li>
+<li><strong>Primary display</strong> — if a discrete card is added, set which one POSTs.</li>
+<li><strong>Legacy vs UEFI video</strong> — UEFI generally gives a better GOP framebuffer; the
+  reference machine boots UEFI.</li>
+<li><strong>BIOS version</strong> — the reference machine is on <strong>1.010</strong>; newer BIOS revisions
+  occasionally improve iGPU POST behaviour.</li>
+</ul>
+<p>A BIOS update is not a fix for this bug, but it is worth having current firmware.</p>
+<hr />
+<h2 id="87-what-not-to-do">8.7 What <em>not</em> to do</h2>
+<ul>
+<li><strong>Do not rely on <code>nomodeset</code></strong> as a “fix”. It permanently caps you at the
+  firmware resolution with no acceleration.</li>
+<li><strong>Do not disable the iGPU</strong> to “avoid conflicts” — you have no other GPU.</li>
+<li><strong>Do not buy a second passive adapter</strong> hoping a different brand behaves better;
+  the mechanism is the same. Buy <em>active</em>.</li>
+</ul>
+<hr />
+<h2 id="88-decision-guide">8.8 Decision guide</h2>
+<pre><code class="language-mermaid">flowchart TD
+  A[No/ugly picture on ML10 Gen9] --&gt; B{Can you replace the adapter?}
+  B -- Yes --&gt; C[Buy an ACTIVE DP-&gt;HDMI adapter]
+  C --&gt; D[Works on Linux, Windows, FreeBSD]
+  B -- No / not yet --&gt; E{Linux?}
+  E -- Yes --&gt; F[Use this repo's video= fix]
+  E -- No --&gt; G[Windows/other: install driver + registry/script force mode]
+  D --&gt; H[Done]
+  F --&gt; H
+  G --&gt; H
+</code></pre>
+</section><section id="doc-docs-09-troubleshooting" class="doc">
+<h1 id="9-troubleshooting">9. Troubleshooting</h1>
+<p>Work top to bottom. Almost every “still dark” case is one of: <code>nomodeset</code> still
+present, wrong connector name, wrong mode, or a passive adapter.</p>
+<hr />
+<h2 id="91-quick-checks">9.1 Quick checks</h2>
+<pre><code class="language-bash">cat /proc/cmdline                     # is nomodeset gone? is video=&lt;name&gt;:&lt;mode&gt;e there?
+grep -qw i915 /proc/modules           # is i915 loaded?
+for c in /sys/class/drm/*/status; do echo &quot;$(basename &quot;$(dirname &quot;$c&quot;)&quot;): $(cat &quot;$c&quot;)&quot;; done
+xrandr | grep connected
+journalctl -k -b | grep -iE 'i915.*(fail|error|WARN)' | grep -vi AUX
+</code></pre>
+<hr />
+<h2 id="92-symptom-cause-fix">9.2 Symptom → cause → fix</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modprobe i915</code> → “No such device”; only <code>simpledrm</code></td>
+<td><code>nomodeset</code> still on the cmdline</td>
+<td>Remove it, reboot (see <a href="04-linux-solution.md">04</a>)</td>
+</tr>
+<tr>
+<td>“No signal” / monitor sleeps, nothing at all</td>
+<td>Connector not force-enabled, EDID missed</td>
+<td>Add <code>video=&lt;correct-name&gt;:&lt;mode&gt;e</code></td>
+</tr>
+<tr>
+<td>Signal present, <strong>black screen, cursor flickers</strong></td>
+<td>You forced <strong>both</strong> <code>DP-x</code> and <code>HDMI-A-x</code> (same port)</td>
+<td>Force <strong>only</strong> the one matching the cable</td>
+</tr>
+<tr>
+<td>Picture but 1024×768 / 640×480</td>
+<td>Mode not forced; firmware framebuffer in use</td>
+<td>Force the native mode; check <code>xrandr</code></td>
+</tr>
+<tr>
+<td>Correct on one boot, wrong on the next</td>
+<td>EDID/bit-bang race at boot</td>
+<td>Keep the <code>e</code> suffix; consider an active adapter</td>
+</tr>
+<tr>
+<td>Works at login screen, goes black after login</td>
+<td>Desktop picked a bad mode/scale</td>
+<td>Pin the mode (<code>xrandr</code>/Xorg/autostart)</td>
+</tr>
+<tr>
+<td><code>i915</code> loads, no connector <code>connected</code></td>
+<td>EDID not read at all (passive adapter)</td>
+<td>Use <code>discover</code>, then an <strong>active</strong> adapter</td>
+</tr>
+<tr>
+<td>Wrong resolution only in the installer/live USB</td>
+<td>Live images may default to <code>nomodeset</code></td>
+<td>Add the same <code>video=</code> token to the boot menu (<code>e</code> to edit, or <code>Tab</code>)</td>
+</tr>
+<tr>
+<td>Flicker / random blanks at idle</td>
+<td>Skylake power features</td>
+<td>Keep <code>i915.enable_dc=0 enable_psr=0 enable_fbc=0</code></td>
+</tr>
+<tr>
+<td>Second monitor not detected</td>
+<td>Only one DDI active, or MST misconfig</td>
+<td>Enable the right second connector; keep <code>enable_dp_mst=0</code> for a hub-free setup</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="93-a-the-screen-is-dark-and-i-dont-know-the-connector-name">9.3 (a) The screen is dark and I don’t know the connector name</h2>
+<p>This is the “chicken and egg” case: you cannot read <code>/sys/class/drm</code> names until
+<code>i915</code> is running, but you cannot see anything when it is.</p>
+<h3 id="option-1-ssh-best">Option 1 — SSH (best)</h3>
+<p>Before rebooting, enable SSH so you can log in while the screen is dark:</p>
+<pre><code class="language-bash">sudo systemctl enable --now ssh
+# note the IP:
+ip -brief addr
+</code></pre>
+<p>Then boot without <code>nomodeset</code> (or use the toolkit’s <code>discover</code> entry) and, from
+another machine:</p>
+<pre><code class="language-bash">ssh you@&lt;ip&gt; 'for c in /sys/class/drm/*/status; do echo &quot;$(basename &quot;$(dirname &quot;$c&quot;)&quot;): $(cat &quot;$c&quot;)&quot;; done'
+</code></pre>
+<p>Whatever is <code>connected</code> is your connector name.</p>
+<h3 id="option-2-the-toolkits-discover-entry">Option 2 — the toolkit’s discover entry</h3>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh discover            # adds a non-destructive GRUB entry
+# reboot, pick &quot;i915 DISCOVER - no nomodeset&quot;
+./i915-display-fix.sh detect                   # prints the connector + apply command
+</code></pre>
+<p>If even that stays dark, try:</p>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh discover --force-all
+</code></pre>
+<p><code>--force-all</code> force-enables every candidate port. It may still be black (multi
+connector conflict), but it lets you SSH in and read which connector reports
+<code>connected</code>/has an EDID. Then apply with that single connector.</p>
+<h3 id="option-3-guess-from-the-port">Option 3 — guess from the port</h3>
+<p>If your cable is in the <strong>left</strong> DP port, try <code>HDMI-A-1</code> first; the <strong>right</strong> port,
+try <code>HDMI-A-2</code>. You can pass both as separate attempts, rebooting between.</p>
+<hr />
+<h2 id="94-b-signal-but-black-screen-cursor-flashes">9.4 (b) “Signal but black screen, cursor flashes”</h2>
+<p>You are forcing two names for one port. Remove the <code>video=</code> tokens and keep only
+the one matching the cable:</p>
+<pre><code class="language-diff">-video=DP-1:1366x768@60e video=HDMI-A-1:1366x768@60e
++video=HDMI-A-1:1366x768@60e
+</code></pre>
+<p>Confirm in the log:</p>
+<pre><code class="language-bash">journalctl -b -1 -k | grep -i &quot;handle_conflicting_encoders&quot;
+</code></pre>
+<hr />
+<h2 id="95-c-wrong-resolution">9.5 (c) Wrong resolution</h2>
+<p>Find the native mode:</p>
+<pre><code class="language-bash">xrandr                       # look at the '*' (current) and the list for the connected output
+# or, without a desktop:
+cat /sys/class/drm/card*-HDMI-A-1/modes | head
+</code></pre>
+<p>Set it live, then make it permanent:</p>
+<pre><code class="language-bash">xrandr --output HDMI-1 --mode 1366x768          # live test
+# permanent: change the number in video=HDMI-A-1:1366x768@60e and re-run update-grub
+</code></pre>
+<hr />
+<h2 id="96-d-recovery-when-the-screen-stays-black">9.6 (d) Recovery when the screen stays black</h2>
+<ol>
+<li><strong>Power-cycle.</strong> The GRUB menu (if it appears) lets you pick
+   <em>“Recovery - safe graphics (nomodeset)”</em> or the distro’s <em>recovery mode</em>.</li>
+<li>If you cannot see the menu at all, force the recovery entry:
+   - At the GRUB menu, press <code>e</code>, append <code>nomodeset</code> to the <code>linux</code> line,
+     <code>Ctrl-X</code>/<code>F10</code> to boot.</li>
+<li>Once in, revert:</li>
+</ol>
+<pre><code class="language-bash">sudo ./i915-display-fix.sh revert
+sudo reboot
+</code></pre>
+<ol start="4">
+<li>Last resort: boot a live USB and edit <code>/etc/default/grub</code> on the installed
+   system (mount the root partition, edit, chroot or just edit the file, then
+   regenerate GRUB).</li>
+</ol>
+<hr />
+<h2 id="97-diagnostic-cheat-sheet">9.7 Diagnostic cheat-sheet</h2>
+<pre><code class="language-bash"># GPU + driver
+lspci -nnk | grep -A3 -iE 'vga|display'
+# Kernel + cmdline
+uname -r; cat /proc/cmdline
+# Module state
+grep -w i915 /proc/modules || echo &quot;i915 not loaded&quot;
+# Connectors
+for c in /sys/class/drm/*/status; do echo &quot;$(basename &quot;$(dirname &quot;$c&quot;)&quot;): $(cat &quot;$c&quot;)&quot;; done
+# Modes per connector
+cat /sys/class/drm/card*-HDMI-A-1/modes
+# EDID presence
+ls -l /sys/class/drm/card*-HDMI-A-1/edid
+# Full DRM debug (verbose; needs drm.debug=0x1e on the cmdline)
+journalctl -b -k | grep -iE 'i915|drm' | less
+</code></pre>
+<p>The automated collector is
+<a href="../scripts/linux/i915-collect.sh"><code>scripts/linux/i915-collect.sh</code></a>.</p>
+<hr />
+<h2 id="98-harmless-log-noise-do-not-chase">9.8 Harmless log noise (do not chase)</h2>
+<pre><code>intel_hdmi_set_edid: HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+failed to retrieve link info, disabling eDP
+PSR condition failed: Port not supported
+Reserved GGTT:[...] for use by error capture
+</code></pre>
+<p>These mean: EDID came in over bit-banging, there is no internal panel, and PSR
+isn’t applicable. They are expected on this hardware.</p>
+</section><section id="doc-docs-10-verification" class="doc">
+<h1 id="10-verification">10. Verification</h1>
+<p>How to prove the fix worked, per platform. Run these after rebooting into the
+fixed configuration.</p>
+<hr />
+<h2 id="101-linux-one-liners">10.1 Linux — one-liners</h2>
+<pre><code class="language-bash"># 1. Kernel: nomodeset is gone, the video= token is present
+cat /proc/cmdline
+
+# 2. The real driver is loaded
+grep -qw i915 /proc/modules &amp;&amp; echo &quot;i915 OK&quot; || echo &quot;i915 MISSING&quot;
+
+# 3. The connector is connected and enabled at the right mode
+for c in /sys/class/drm/*/status; do
+  d=$(dirname &quot;$c&quot;)
+  echo &quot;$(basename &quot;$d&quot;): $(cat &quot;$c&quot;) enabled=$(cat &quot;$d/enabled&quot;) mode=$(head -1 &quot;$d/modes&quot;)&quot;
+done
+
+# 4. Xorg sees it at the right resolution
+xrandr | grep connected
+
+# 5. Hardware acceleration (not llvmpipe)
+glxinfo | grep -E 'OpenGL renderer|direct rendering'
+</code></pre>
+<p>Expected (reference machine):</p>
+<pre><code>HDMI-A-1: connected enabled=enabled mode=1366x768
+HDMI-1 connected primary 1366x768+0+0
+OpenGL renderer string: Mesa Intel(R) HD Graphics P530 (SKL GT2)
+direct rendering: Yes
+</code></pre>
+<p>Or simply:</p>
+<pre><code class="language-bash">./scripts/linux/i915-display-fix.sh status
+</code></pre>
+<h3 id="automated-passfail-check">Automated pass/fail check</h3>
+<pre><code class="language-bash"># fails loudly if nomodeset is still present or i915 is missing
+! grep -qw nomodeset /proc/cmdline &amp;&amp; grep -qw i915 /proc/modules \
+  &amp;&amp; echo &quot;PASS&quot; || echo &quot;FAIL&quot;
+</code></pre>
+<hr />
+<h2 id="102-finding-your-native-resolution">10.2 Finding your native resolution</h2>
+<pre><code class="language-bash"># Preferred (first) mode the monitor advertises:
+cat /sys/class/drm/card*-HDMI-A-1/modes | head -1
+
+# Everything it supports:
+cat /sys/class/drm/card*-HDMI-A-1/modes
+
+# The raw EDID (decode with edid-decode if installed):
+ls -l /sys/class/drm/card*-HDMI-A-1/edid
+edid-decode /sys/class/drm/card*-HDMI-A-1/edid | grep -i preferred -A2
+</code></pre>
+<p>The first mode in <code>modes</code> is the monitor’s preferred/native mode — use it in the
+<code>video=</code> token.</p>
+<hr />
+<h2 id="103-windows-server">10.3 Windows / Server</h2>
+<pre><code class="language-powershell">Get-CimInstance Win32_VideoController |
+  Select-Object Name, DriverVersion, CurrentHorizontalResolution,
+                CurrentVerticalResolution, CurrentRefreshRate
+
+# confirm it is not the basic adapter:
+Get-PnpDevice -Class Display | Format-Table Status, FriendlyName, InstanceId
+</code></pre>
+<p>Good: <code>Intel(R) HD Graphics ...</code> at your native resolution, not
+<code>Microsoft Basic Display Adapter</code>.</p>
+<p>The provided tools:</p>
+<pre><code class="language-powershell">powershell -ExecutionPolicy Bypass -File scripts\windows\Get-GraphicsInfo.ps1
+DisplayFix.exe --current
+</code></pre>
+<hr />
+<h2 id="104-freebsd">10.4 FreeBSD</h2>
+<pre><code class="language-sh">sysctl kern.vty                       # should say vt
+kldstat | grep i915kms
+pciconf -lv | grep -A4 vgapci
+# under X:
+xrandr | grep connected
+</code></pre>
+<hr />
+<h2 id="105-performance-sanity-check">10.5 Performance sanity check</h2>
+<p>A properly driven display has hardware acceleration. If <code>glxinfo</code> says
+<code>llvmpipe</code> (Linux) or Windows shows the Basic Display Adapter, the fix is <em>not</em>
+complete even if the resolution looks right.</p>
+<pre><code class="language-bash"># Linux: should NOT say llvmpipe / softpipe
+glxinfo | grep -i 'renderer'
+
+# Quick OpenGL capability
+glxinfo | grep 'OpenGL version'
+</code></pre>
+<hr />
+<h2 id="106-what-success-looks-like">10.6 What “success” looks like</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/proc/cmdline</code></td>
+<td>no <code>nomodeset</code>; has <code>video=&lt;connector&gt;:&lt;WxH&gt;@&lt;Hz&gt;e</code></td>
+</tr>
+<tr>
+<td>Driver</td>
+<td><code>i915</code> loaded (Linux) / Intel driver (Windows)</td>
+</tr>
+<tr>
+<td>Connector</td>
+<td>exactly one <code>connected</code>, <code>enabled</code></td>
+</tr>
+<tr>
+<td>Current mode</td>
+<td>monitor’s native resolution</td>
+</tr>
+<tr>
+<td>Renderer</td>
+<td>Intel GPU, hardware accelerated</td>
+</tr>
+<tr>
+<td>Stability</td>
+<td>no flicker / blanking over several minutes idle</td>
+</tr>
+</tbody>
+</table>
+</section><section id="doc-docs-11-reference" class="doc">
+<h1 id="11-reference">11. Reference</h1>
+<h2 id="111-kernel-command-line-parameters-used">11.1 Kernel command line parameters used</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Values</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nomodeset</code></td>
+<td><em>(presence)</em></td>
+<td>Blocks DRM/KMS drivers (sets <code>video_firmware_drivers_only()</code>). <strong>Remove it.</strong></td>
+</tr>
+<tr>
+<td><code>video=&lt;conn&gt;:&lt;WxH&gt;[@Hz][e]</code></td>
+<td>see §11.2</td>
+<td>Force-enable an output and its mode.</td>
+</tr>
+<tr>
+<td><code>i915.enable_dc=</code></td>
+<td><code>0</code>/<code>1</code>/<code>2</code></td>
+<td>Display C-states (DC5/DC6). <code>0</code> = off (stable).</td>
+</tr>
+<tr>
+<td><code>i915.enable_psr=</code></td>
+<td><code>0</code>/<code>1</code></td>
+<td>Panel Self Refresh. <code>0</code> = off.</td>
+</tr>
+<tr>
+<td><code>i915.enable_fbc=</code></td>
+<td><code>0</code>/<code>1</code></td>
+<td>Frame Buffer Compression. <code>0</code> = off.</td>
+</tr>
+<tr>
+<td><code>i915.enable_dp_mst=</code></td>
+<td><code>0</code>/<code>1</code></td>
+<td>DP Multi-Stream Transport. <code>0</code> = off.</td>
+</tr>
+<tr>
+<td><code>i915.disable_power_well=</code></td>
+<td><code>0</code>/<code>1</code>/<code>-1</code></td>
+<td><code>0</code> = keep power wells always on.</td>
+</tr>
+<tr>
+<td><code>drm.debug=</code></td>
+<td>hex bitmask</td>
+<td>DRM debug categories (see §11.4).</td>
+</tr>
+<tr>
+<td><code>log_buf_len=</code></td>
+<td>e.g. <code>16M</code></td>
+<td>Enlarge the kernel log ring (for verbose debug).</td>
+</tr>
+<tr>
+<td><code>quiet</code></td>
+<td>—</td>
+<td>Suppress most boot messages.</td>
+</tr>
+<tr>
+<td><code>splash</code></td>
+<td>—</td>
+<td>Graphical boot splash.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="112-video-syntax-in-full">11.2 <code>video=</code> syntax in full</h2>
+<pre><code>video=&lt;connector&gt;:&lt;xres&gt;x&lt;yres&gt;[@&lt;refresh&gt;][&lt;options&gt;]
+</code></pre>
+<ul>
+<li><code>&lt;connector&gt;</code> — DRM connector name: <code>DP-1</code>, <code>HDMI-A-1</code>, <code>eDP-1</code>, <code>VGA-1</code>, …
+  Use the name from <code>/sys/class/drm/</code>.</li>
+<li><code>&lt;refresh&gt;</code> — optional vertical refresh in Hz, e.g. <code>@60</code>.</li>
+<li><code>&lt;options&gt;</code> — one or more of:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Suffix</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>e</code></td>
+<td>Force-enable the output even if the driver thinks it is disconnected. <strong>This is the key suffix for this bug.</strong></td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Force-<strong>disable</strong> the output.</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>Enable with <strong>digital</strong> (TMDS) signalling — useful to force an HDMI/DVI encoder.</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>Use mode with margins.</td>
+</tr>
+<tr>
+<td><code>i</code></td>
+<td>Interlaced.</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<pre><code>video=HDMI-A-1:1366x768@60e      # force 1366x768@60 on HDMI-A-1, even if &quot;disconnected&quot;
+video=DP-1:d                     # force-disable DP-1
+video=HDMI-A-1:1920x1080@60eD    # force digital + 1080p
+</code></pre>
+<p>You can list several <code>video=</code> tokens, but <strong>do not</strong> force both names of the same
+physical port (see <a href="03-root-cause.md">03</a>).</p>
+<h2 id="113-connector-name-x-output-name">11.3 Connector name ↔ X output name</h2>
+<table>
+<thead>
+<tr>
+<th>DRM (kernel)</th>
+<th>Xorg (<code>xrandr</code>)</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HDMI-A-1</code></td>
+<td><code>HDMI-1</code></td>
+<td>HDMI/DP++ in TMDS mode</td>
+</tr>
+<tr>
+<td><code>DP-1</code></td>
+<td><code>DP-1</code></td>
+<td>native DisplayPort</td>
+</tr>
+<tr>
+<td><code>eDP-1</code></td>
+<td><code>eDP-1</code></td>
+<td>internal panel</td>
+</tr>
+<tr>
+<td><code>VGA-1</code></td>
+<td><code>VGA-1</code></td>
+<td>analog</td>
+</tr>
+</tbody>
+</table>
+<p><code>HDMI-A-2</code>, <code>DP-2</code>, … correspond to the next physical port.</p>
+<h2 id="114-drmdebug-bitmask">11.4 <code>drm.debug</code> bitmask</h2>
+<table>
+<thead>
+<tr>
+<th>Bit</th>
+<th>Category</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x01</code></td>
+<td><code>DRM_UT_CORE</code></td>
+</tr>
+<tr>
+<td><code>0x02</code></td>
+<td><code>DRM_UT_DRIVER</code></td>
+</tr>
+<tr>
+<td><code>0x04</code></td>
+<td><code>DRM_UT_KMS</code> (connector/EDID/modeset — the useful one)</td>
+</tr>
+<tr>
+<td><code>0x08</code></td>
+<td><code>DRM_UT_PRIME</code></td>
+</tr>
+<tr>
+<td><code>0x10</code></td>
+<td><code>DRM_UT_ATOMIC</code></td>
+</tr>
+<tr>
+<td><code>0x1e</code></td>
+<td>DRIVER+KMS+PRIME+ATOMIC (what this repo used)</td>
+</tr>
+</tbody>
+</table>
+<p>Debug messages are rate-limited and verbose; turn them off (remove <code>drm.debug</code>)
+once you are done.</p>
+<h2 id="115-useful-commands">11.5 Useful commands</h2>
+<pre><code class="language-bash"># DRM state
+cat /sys/class/drm/card*-*/status
+cat /sys/class/drm/card*-*/modes
+cat /sys/class/drm/card*-*/enabled
+
+# Xorg
+xrandr --verbose
+xrandr --output HDMI-1 --mode 1366x768 --rate 60
+cvt 1366 768 60              # generate a modeline
+gtf 1366 768 60
+
+# Kernel / module
+modinfo i915
+for p in /sys/module/i915/parameters/*; do echo &quot;$(basename $p)=$(cat $p)&quot;; done
+
+# Boot
+bootctl status                # systemd-boot
+grub-mkconfig -o /boot/grub/grub.cfg
+</code></pre>
+<h2 id="116-glossary">11.6 Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>KMS</strong></td>
+<td>Kernel Mode Setting — the kernel programs the display controller.</td>
+</tr>
+<tr>
+<td><strong>i915</strong></td>
+<td>Linux kernel driver for Intel integrated graphics.</td>
+</tr>
+<tr>
+<td><strong>nomodeset</strong></td>
+<td>Kernel flag that disables KMS; leaves the firmware framebuffer.</td>
+</tr>
+<tr>
+<td><strong>EDID</strong></td>
+<td>Monitor capability block read over DDC/I²C.</td>
+</tr>
+<tr>
+<td><strong>DDC / DDC-CI</strong></td>
+<td>Display Data Channel (the I²C bus carrying EDID).</td>
+</tr>
+<tr>
+<td><strong>GMBUS</strong></td>
+<td>Intel’s hardware I²C controller for DDC.</td>
+</tr>
+<tr>
+<td><strong>Bit-banging</strong></td>
+<td>Software-toggling the DDC lines when GMBUS fails (slow).</td>
+</tr>
+<tr>
+<td><strong>DP++</strong></td>
+<td>Dual-mode DisplayPort: can output native DP or TMDS (HDMI/DVI).</td>
+</tr>
+<tr>
+<td><strong>DDI</strong></td>
+<td>Digital Display Interface — the physical Intel display port block.</td>
+</tr>
+<tr>
+<td><strong>DDC</strong></td>
+<td>see above</td>
+</tr>
+<tr>
+<td><strong>CRTC</strong></td>
+<td>Display controller / scanout pipe.</td>
+</tr>
+<tr>
+<td><strong>PHY</strong></td>
+<td>The electrical layer of a display port.</td>
+</tr>
+<tr>
+<td><strong>PSR</strong></td>
+<td>Panel Self Refresh (power saving).</td>
+</tr>
+<tr>
+<td><strong>FBC</strong></td>
+<td>Frame Buffer Compression.</td>
+</tr>
+<tr>
+<td><strong>MST</strong></td>
+<td>Multi-Stream Transport (daisy-chaining DP displays).</td>
+</tr>
+<tr>
+<td><strong>DCH</strong></td>
+<td>Declarative Componentized Hardware — modern Windows driver model.</td>
+</tr>
+<tr>
+<td><strong>WDDM</strong></td>
+<td>Windows Display Driver Model.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="117-file-locations-linux">11.7 File locations (Linux)</h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/etc/default/grub</code></td>
+<td>GRUB defaults (edit here)</td>
+</tr>
+<tr>
+<td><code>/boot/grub/grub.cfg</code></td>
+<td>generated GRUB (Debian/Arch)</td>
+</tr>
+<tr>
+<td><code>/boot/grub2/grub.cfg</code></td>
+<td>generated GRUB (Fedora/openSUSE)</td>
+</tr>
+<tr>
+<td><code>/etc/grub.d/</code></td>
+<td>scripts that generate menu entries (never put backups here)</td>
+</tr>
+<tr>
+<td><code>/boot/loader/entries/*.conf</code></td>
+<td>systemd-boot entries</td>
+</tr>
+<tr>
+<td><code>/sys/class/drm/</code></td>
+<td>live connector state</td>
+</tr>
+<tr>
+<td><code>/var/backups/i915-display-fix/</code></td>
+<td>backups made by this repo’s toolkit</td>
+</tr>
+<tr>
+<td><code>/etc/X11/xorg.conf.d/</code></td>
+<td>Xorg snippets (mode pinning)</td>
+</tr>
+</tbody>
+</table>
+</section><section id="doc-docs-12-faq" class="doc">
+<h1 id="12-faq">12. FAQ</h1>
+<p><strong>Q: Is my ML10 Gen9’s iGPU actually supported?</strong>
+Yes. The HD Graphics P530 (<code>8086:191d</code>) is fully supported by Linux <code>i915</code> and by
+the Windows Intel graphics driver. HP does not ship a Windows Server driver for
+it, which is why it “looks” unsupported.</p>
+<p><strong>Q: Why does <code>nomodeset</code> “work” then?</strong>
+Because it does not use the GPU at all — it uses the BIOS’s simple framebuffer
+(<code>simpledrm</code>). That is why you are stuck at 1024×768 with no acceleration.</p>
+<p><strong>Q: Can I fix this without rebooting?</strong>
+No. <code>nomodeset</code> is read once at boot. Live <code>modprobe i915</code> fails while it is set.</p>
+<p><strong>Q: Do I really need the <code>i915.enable_*</code> flags?</strong>
+Usually only <code>video=&lt;conn&gt;:&lt;WxH&gt;@&lt;Hz&gt;e</code> (and removing <code>nomodeset</code>) is required.
+The flags are conservative stability tweaks for Skylake; keep them if you saw
+flicker, drop them if you prefer default power behaviour and it still works.</p>
+<p><strong>Q: Why do I have to name <code>HDMI-A-1</code> when the port is a DisplayPort?</strong>
+Because a DP++ port is dual-mode. In HDMI/DVI mode the kernel exposes it under
+the <code>HDMI-A-x</code> name. <code>DP-1</code> and <code>HDMI-A-1</code> are the same physical port.</p>
+<p><strong>Q: I forced both and got a black screen with a cursor. Why?</strong>
+Two connectors on one port fight over the shared encoder
+(<code>handle_conflicting_encoders</code>), so the driver keeps disabling your monitor. Force
+only one.</p>
+<p><strong>Q: Can I use my monitor’s full 1920×1080?</strong>
+Yes, if the monitor and adapter support it. Put the native mode in the token:
+<code>video=HDMI-A-1:1920x1080@60e</code>. Verify the mode exists:
+<code>cat /sys/class/drm/card*-HDMI-A-1/modes</code>.</p>
+<p><strong>Q: Will this survive kernel updates?</strong>
+Yes. <code>/etc/default/grub</code> is static, and <code>update-grub</code>/<code>grub2-mkconfig</code> regenerates
+from it for every installed kernel. The optional custom recovery entry hardcodes
+the kernel of the day; re-run <code>apply</code> after a major upgrade, or rely on your
+distro’s built-in recovery entry.</p>
+<p><strong>Q: What about Secure Boot?</strong>
+The fix does not touch boot signing; it only changes the kernel command line. It
+works with Secure Boot enabled. The Windows <code>.exe</code> approach is unaffected.</p>
+<p><strong>Q: Does this help on Windows?</strong>
+Not directly. On Windows install the Intel driver and use an <strong>active</strong> adapter;
+the <code>video=</code> concept does not exist there. See
+<a href="06-windows-server.md">docs/06-windows-server.md</a>.</p>
+<p><strong>Q: Is a passive adapter really the problem?</strong>
+It is the <em>root</em> of the EDID failure. Passive DP→HDMI/DVI plugs do not regenerate
+DDC. An active adapter removes the need for the software workaround.</p>
+<p><strong>Q: I only see 640×480. Is that a different bug?</strong>
+No. It is the same: without EDID the driver/OS falls back to a safe low mode. Force
+the mode, then consider an active adapter.</p>
+<p><strong>Q: Can I disable <code>nomodeset</code> but keep text-only boot?</strong>
+Yes — use <code>nomodeset</code> only for the recovery entry; the normal entry should not
+have it. That is exactly what this repo sets up.</p>
+<p><strong>Q: How do I go back?</strong>
+<code>sudo ./scripts/linux/i915-display-fix.sh revert</code>, or restore the <code>.bak</code> of
+<code>/etc/default/grub</code> and <code>update-grub</code>. A recovery GRUB entry is always left in
+place.</p>
+<p><strong>Q: Why did my GRUB menu get a duplicate/garbled entry after editing?</strong>
+Because a <code>*.bak</code> file was left inside <code>/etc/grub.d/</code>, which GRUB executes. Keep
+backups elsewhere (the toolkit uses <code>/var/backups/i915-display-fix/</code>).</p>
+<p><strong>Q: Will this work on a monitor with DisplayPort directly (no adapter)?</strong>
+Yes, and it is the best case. You may not even need the <code>video=</code> force; plain
+<code>nomodeset</code>-removal is likely enough.</p>
+<p><strong>Q: Is there a risk of bricking the display permanently?</strong>
+No. All changes are file-based and reversible, and a <code>nomodeset</code> recovery entry is
+always available. Even in the worst case you reach a console with a live USB.</p>
+</section><section id="doc-CHANGELOG" class="doc">
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project are documented here.
+Format loosely follows <a href="https://keepachangelog.com/">Keep a Changelog</a>.</p>
+<h2 id="110-2026-10-14">[1.1.0] - 2026-10-14</h2>
+<h3 id="added">Added</h3>
+<ul>
+<li><strong><code>QUICKSTART.md</code></strong> — the 60-second version of the whole fix.</li>
+<li><strong>Printable PDF</strong> of the complete documentation:
+  <code>docs/dist/ProLiant-ML10-Graphics-fix.pdf</code> (49 pages, A4), built from the
+  Markdown sources with a cover page and table of contents.</li>
+<li><strong>Screenshots section</strong> in the README with real terminal captures under
+  <code>assets/screenshots/</code> (toolkit status, connector detection, <code>xrandr</code>,
+  <code>glxinfo</code>, proof panel, Windows tools).</li>
+<li><strong>Documentation build scripts</strong> <code>scripts/doc/build-pdf.sh</code> and
+  <code>scripts/doc/make-screenshots.sh</code> (Markdown → HTML → PDF via headless Chrome;
+  real command output rendered to PNG).</li>
+<li><code>Makefile</code> targets <code>pdf</code>, <code>screenshots</code>, <code>docs</code>.</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>README: added quick-start/PDF callouts, a Screenshots section, and an updated
+  repository-layout diagram.</li>
+<li>Makefile <code>lint</code> now also covers <code>scripts/doc/*.sh</code>.</li>
+</ul>
+<h2 id="100-2026-10-14">[1.0.0] - 2026-10-14</h2>
+<p>Initial release.</p>
+<h3 id="added_1">Added</h3>
+<ul>
+<li>Complete root-cause analysis for the ML10 Gen9 (Intel HD Graphics P530)
+  display failure over a DP→DVI→HDMI chain.</li>
+<li><code>nomodeset</code> behaviour and <code>video_firmware_drivers_only()</code>.</li>
+<li>EDID/GMBUS failure and the GPIO bit-bang fallback.</li>
+<li>The dual-name DP++ port trap (<code>DP-1</code> vs <code>HDMI-A-1</code> on the same DDI).</li>
+<li>Skylake power-feature stability flags.</li>
+<li><strong>Linux toolkit</strong> <code>scripts/linux/i915-display-fix.sh</code> with <code>status</code>, <code>detect</code>,
+  <code>apply</code>, <code>discover</code>, <code>revert</code>; supports GRUB (Debian/Ubuntu/Mint, Fedora/RHEL,
+  Arch, openSUSE) and systemd-boot.</li>
+<li><code>scripts/linux/i915-collect.sh</code> diagnostic collector.</li>
+<li><code>scripts/linux/finalize-i915.sh</code> one-shot applier.</li>
+<li><strong>Windows / Windows Server</strong> tooling:</li>
+<li><code>Get-GraphicsInfo.ps1</code>, <code>Set-DisplayResolution.ps1</code>,
+    <code>Install-IntelGraphicsDriver.ps1</code>, <code>Fix-Display.bat</code>.</li>
+<li><code>DisplayFix.exe</code> (native, ~44 KB, built from <code>src/DisplayFix.c</code>) plus source.</li>
+<li><strong>FreeBSD</strong> helper <code>scripts/freebsd/i915-freebsd.sh</code>.</li>
+<li>Full documentation set (<code>docs/01</code>–<code>docs/12</code>) covering problem, diagnosis,
+  root cause, Linux solution, per-distro guide, Windows Server, other OSes,
+  hardware/cables/adapters, troubleshooting, verification, reference and FAQ.</li>
+<li>Real diagnostic captures in <code>examples/</code>.</li>
+<li><code>Makefile</code> (build the Windows <code>.exe</code>, lint), <code>install.sh</code>, CI workflow.</li>
+</ul>
+<h3 id="verified-on">Verified on</h3>
+<ul>
+<li>HPE ProLiant ML10 Gen9, BIOS 1.010, Xeon E3-1225 v5, HD Graphics P530.</li>
+<li>Linux Mint 22.3, kernels 7.0.0-38-generic and 6.14.0-37-generic.</li>
+<li>Monitor 1366×768 via DP→DVI→HDMI. Result: 1366×768 @ 60 Hz, i915 + Mesa.</li>
+</ul>
+</section>
+</body>
+</html>

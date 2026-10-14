@@ -11,6 +11,10 @@ Tested reference machine: **HPE ProLiant ML10 Gen9**, Xeon E3-1225 v5,
 2× DisplayPort 1.2, monitor over **DP → DVI → HDMI**, Linux Mint 22.x.
 Result: **1366×768 @ 60 Hz** with full hardware acceleration.
 
+> 📄 **New here?** Read [**QUICKSTART.md**](QUICKSTART.md) first.
+> 🖨️ **Printable / offline:** [**docs/dist/ProLiant-ML10-Graphics-fix.pdf**](docs/dist/ProLiant-ML10-Graphics-fix.pdf)
+> (all documentation in one 49-page PDF) — see [Screenshots](#screenshots).
+
 ---
 
 ## TL;DR — the fix
@@ -65,11 +69,13 @@ See **[docs/06-windows-server.md](docs/06-windows-server.md)**.
 ```
 ProLiant-ML10-Graphics-fix-Linux/
 ├── README.md                        ← you are here
+├── QUICKSTART.md                    ← 60-second version
 ├── LICENSE                          ← MIT
 ├── CHANGELOG.md
-├── Makefile                         ← build Windows .exe, lint scripts
+├── Makefile                         ← build .exe, PDF, screenshots, lint
 ├── install.sh                       ← install Linux toolkit to /usr/local/sbin
 ├── docs/                            ← the full write-up (see table above)
+│   └── dist/                        ← generated PDF + HTML (all docs combined)
 ├── scripts/
 │   ├── linux/
 │   │   ├── i915-display-fix.sh      ← portable toolkit (detect/apply/revert/discover)
@@ -81,14 +87,20 @@ ProLiant-ML10-Graphics-fix-Linux/
 │   │   ├── Set-DisplayResolution.ps1← set resolution / list modes
 │   │   ├── Install-IntelGraphicsDriver.ps1
 │   │   ├── Fix-Display.bat          ← double-click wrapper
+│   │   ├── DisplayFix.exe           ← prebuilt native tool
 │   │   ├── src/DisplayFix.c         ← source of the tiny native .exe
 │   │   └── README.md
-│   └── freebsd/
-│       ├── i915-freebsd.sh
-│       └── README.md
+│   ├── freebsd/
+│   │   ├── i915-freebsd.sh
+│   │   └── README.md
+│   └── doc/
+│       ├── build-pdf.sh             ← Markdown -> HTML -> Chrome -> PDF
+│       └── make-screenshots.sh      ← render real output as terminal PNGs
 ├── examples/                        ← real logs/cmdlines from the reference machine
-├── assets/                          ← diagrams
-└── .github/workflows/ci.yml         ← shellcheck + syntax CI
+├── assets/
+│   ├── architecture.svg             ← signal-chain diagram
+│   └── screenshots/                 ← generated terminal captures
+└── .github/workflows/ci.yml         ← shellcheck + syntax + Windows build CI
 ```
 
 ---
@@ -108,6 +120,36 @@ through a cheap **DP→DVI→HDMI** (or DP→HDMI) adapter. The result is a mach
 This repository documents the actual technical cause and gives a **software fix
 that works with a passive adapter**, plus the hardware fix if you prefer it, on
 **every OS we could test or verify**.
+
+---
+
+## Screenshots
+
+Everything below is the **real output of the reference machine**, captured with
+[`scripts/doc/make-screenshots.sh`](scripts/doc/make-screenshots.sh) (it runs the
+commands and rasterises their output — nothing is mocked up).
+
+| Toolkit status (`i915-display-fix.sh status`) | Connector detection (`… detect`) |
+|---|---|
+| ![toolkit status](assets/screenshots/01-status.png) | ![connector detection](assets/screenshots/02-detect.png) |
+
+| X outputs (`xrandr`) | Hardware acceleration (`glxinfo`) |
+|---|---|
+| ![xrandr](assets/screenshots/03-xrandr.png) | ![glxinfo](assets/screenshots/04-acceleration.png) |
+
+**Proof of a correct setup** — `nomodeset` gone, `i915` loaded, one connector
+enabled at 1366×768:
+
+![proof of a correct setup](assets/screenshots/05-proof.png)
+
+**Windows Server / Windows** — the tools you run there
+(see [`docs/06-windows-server.md`](docs/06-windows-server.md)):
+
+![windows tools](assets/screenshots/06-windows.png)
+
+> The signal-chain diagram at the top of the
+> [PDF](docs/dist/ProLiant-ML10-Graphics-fix.pdf) is
+> [`assets/architecture.svg`](assets/architecture.svg).
 
 ---
 

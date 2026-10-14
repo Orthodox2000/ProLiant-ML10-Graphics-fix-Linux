@@ -3,6 +3,26 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.0] - 2026-10-14
+
+### Added
+- **`QUICKSTART.md`** — the 60-second version of the whole fix.
+- **Printable PDF** of the complete documentation:
+  `docs/dist/ProLiant-ML10-Graphics-fix.pdf` (49 pages, A4), built from the
+  Markdown sources with a cover page and table of contents.
+- **Screenshots section** in the README with real terminal captures under
+  `assets/screenshots/` (toolkit status, connector detection, `xrandr`,
+  `glxinfo`, proof panel, Windows tools).
+- **Documentation build scripts** `scripts/doc/build-pdf.sh` and
+  `scripts/doc/make-screenshots.sh` (Markdown → HTML → PDF via headless Chrome;
+  real command output rendered to PNG).
+- `Makefile` targets `pdf`, `screenshots`, `docs`.
+
+### Changed
+- README: added quick-start/PDF callouts, a Screenshots section, and an updated
+  repository-layout diagram.
+- Makefile `lint` now also covers `scripts/doc/*.sh`.
+
 ## [1.0.0] - 2026-10-14
 
 Initial release.

@@ -16,7 +16,7 @@ jobs:
       - name: Bash syntax check
         run: |
           fail=0
-          for f in scripts/linux/*.sh scripts/freebsd/*.sh install.sh; do
+          for f in scripts/linux/*.sh scripts/freebsd/*.sh scripts/doc/*.sh install.sh; do
             if bash -n "$f"; then echo "OK   $f"; else echo "FAIL $f"; fail=1; fi
           done
           exit $fail
@@ -49,3 +49,21 @@ jobs:
         with:
           name: DisplayFix-exe
           path: DisplayFix.exe
+
+  build-pdf:
+    name: Build documentation PDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install python3-markdown
+        run: python3 -m pip install --user markdown
+
+      - name: Build PDF
+        run: bash scripts/doc/build-pdf.sh
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProLiant-ML10-Graphics-fix-pdf
+          path: docs/dist/ProLiant-ML10-Graphics-fix.pdf
