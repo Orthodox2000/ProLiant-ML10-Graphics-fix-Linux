@@ -11,7 +11,7 @@ jobs:
     name: Lint shell scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Bash syntax check
         run: |
@@ -32,7 +32,7 @@ jobs:
     name: Build DisplayFix.exe (mingw-w64)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install mingw-w64
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64
@@ -54,7 +54,7 @@ jobs:
     name: Build documentation PDF
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install python3-markdown
         run: python3 -m pip install --user markdown
