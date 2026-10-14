@@ -1,150 +1,207 @@
-# Social media kit — LinkedIn (and re-usable for X / Mastodon / Reddit)
+# Social media kit — LinkedIn (AI / “make your own driver” angle)
 
-Everything you need to announce the project. Copy/paste the text, upload the
-image, paste the repo link. Nothing else required.
+Everything you need to announce the project. Copy, paste, upload, done.
+Nothing else required.
 
-- **Landscape image (link preview / feed):** [`assets/linkedin/linkedin-1200x627.png`](../../assets/linkedin/linkedin-1200x627.png) — 1200×627
-- **Square image (feed post):** [`assets/linkedin/linkedin-1080x1080.png`](../../assets/linkedin/linkedin-1080x1080.png) — 1080×1080
+- **Landscape image (post / link preview):** [`assets/linkedin/linkedin-1200x627.png`](../../assets/linkedin/linkedin-1200x627.png) — 1200×627
+- **Square image (bigger feed visual):** [`assets/linkedin/linkedin-1080x1080.png`](../../assets/linkedin/linkedin-1080x1080.png) — 1080×1080
 - **Repo link:** https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
 
-Regenerate the images any time with `make social` (or
-`bash scripts/doc/make-social.sh`).
+Regenerate the images any time with `make social`
+(or `bash scripts/doc/make-social.sh`).
+
+**The angle in one line:** *with AI you can now write your own driver-level fix,
+so old hardware keeps working on a modern OS — we did exactly that.*
 
 ---
 
-## TL;DR — what to upload and where
+## 1. Post structure (the anatomy)
 
-| Step | Where | What |
+Use this skeleton for any platform. Each block has a job.
+
+| # | Block | Job | Length |
+|---|---|---|---|
+| 1 | **Hook** | Stop the scroll. The AI/driver idea. | 1 line |
+| 2 | **Reframe** | Why this matters — “old hardware” vs disappearing vendor support. | 2–3 lines |
+| 3 | **Problem (by behaviour, not specs)** | Describe the *symptom*, never “CPU X is broken”. | 3–4 lines |
+| 4 | **The insight** | “This is a *driver* problem” — the aha that justifies building our own. | 3–4 lines |
+| 5 | **What we built** | Our own driver-level toolkit. Bullets + the key snippet. | 6–8 lines |
+| 6 | **Result** | One punchy line. Before → after. | 1 line |
+| 7 | **The bigger point** | Right-to-repair / e-waste / “we can now write the glue ourselves”. | 2–3 lines |
+| 8 | **CTA** | Repo link. | 1 line |
+| 9 | **Hashtags** | 8–12, mixed reach. | 1 line |
+
+**Formatting rules**
+- Lead with a bolded hook line; LinkedIn collapses after ~3 lines — make them count.
+- Short paragraphs (1–3 lines), single blank line between them.
+- **Bold** the section leads; 🔧🪟🐧📄 emoji as section markers (not decoration spam).
+- Put the link **once**, at the end. Put extra links in the first comment.
+- No CPU/GPU model as the identifier. Name the *behaviour* (“goes dark after POST”).
+
+---
+
+## 2. Post text (primary — the AI / DIY-driver angle)
+
+> 🧠 **With AI, you can now write your own drivers — and keep old hardware alive.**
+>
+> For years, “old hardware on a new system” meant hunting for a vendor driver that
+> no longer exists, or was never written for your OS. When support ends, you’re
+> stuck — unless you write the fix yourself.
+>
+> So we did.
+>
+> **The problem (by behaviour, not specs):**
+> A perfectly good small tower server. Add a monitor through a passive
+> **DP → DVI → HDMI** adapter chain, and it goes dark right after POST. The OS
+> loads, the machine is alive — there’s just no signal.
+>
+> The usual advice is `nomodeset`. It “works”… by giving up on the GPU entirely and
+> pinning you to a slow 1024×768 firmware framebuffer. That isn’t a fix, it’s
+> surrender.
+>
+> **The insight — this is a *driver* problem.**
+> The passive adapter **hides the monitor’s EDID**, so the graphics driver’s bus
+> read fails, it falls back to slow bit-banging, and the output is **never
+> enabled**. Second trap: two different connector names can be the *same* physical
+> port — try to force both and you get nothing.
+>
+> No vendor is going to ship a driver for a discontinued box on a modern kernel.
+> So we wrote the driver-level fix ourselves.
+>
+> **What we built — our own driver toolkit:**
+> 🔧 **Linux** — a portable toolkit for **GRUB *and* systemd-boot**:
+>   `status`, `detect`, `apply`, `discover`, `revert`. Non-destructive, timestamped
+>   backups, and a guaranteed recovery entry so you can never get stuck on a black
+>   screen. It does what a driver would — names the right connector, sets the exact
+>   mode, and switches off the power features that keep the output asleep:
+>
+> ```
+> video=<connector>:1366x768@60e i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0
+> ```
+>
+> 🪟 **Windows / Windows Server** — our own tooling, including a small
+>   **`DisplayFix.exe` we wrote and compiled** (source included; unsigned — audit it).
+> 🐧 **FreeBSD / TrueNAS / pfSense / Proxmox** — helpers for the same fix.
+> 📄 A **52-page write-up**, real screenshots, and full troubleshooting.
+>
+> **The result:**
+> The machine that showed *nothing* now runs at its **native 1366×768 @ 60 Hz,
+> hardware accelerated.** Old hardware, modern OS, working.
+>
+> **The real point:**
+> AI didn’t magically support the hardware — it let *us* do the driver-level work
+> that used to require a vendor: read the driver/kernel behaviour, find the exact
+> parameters, and ship a tool anyone can run. That’s the unlock. **Old hardware
+> gets a second life because we can now write the glue ourselves.** Less e-waste,
+> less “buy new”, more “make it work”.
+>
+> 🔗 Full write-up + toolkit:
+> https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
+>
+> #AI #OpenSource #Linux #WindowsServer #FreeBSD #Drivers #Hardware #SysAdmin #Homelab #RightToRepair #Sustainability #DisplayPort
+
+---
+
+## 3. Short version (mobile / higher completion)
+
+> 🧠 **With AI, you can now make your own drivers — so old hardware keeps working
+> on a modern OS.**
+>
+> We had a perfectly good tower server that went **dark right after POST** through a
+> passive **DP → DVI → HDMI** chain. The adapter **hides the monitor’s EDID**, so the
+> graphics driver never enables the output. `nomodeset` only *pretends* to fix it
+> (1024×768, no acceleration).
+>
+> No vendor is shipping a driver for a discontinued box — so we wrote the fix
+> ourselves: a tiny toolkit that tells the driver the right connector, the exact
+> mode, and to stop sleeping.
+>
+> Result: **1366×768 @ 60 Hz, accelerated.** Old hardware, second life.
+>
+> Linux (GRUB + systemd-boot), Windows Server, and FreeBSD, with a safe recovery
+> entry so you can never get stuck. Full write-up + a 52-page PDF:
+>
+> 🔗 https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
+>
+> #AI #OpenSource #Linux #Drivers #Hardware #SysAdmin #RightToRepair
+
+---
+
+## 4. Carousel format (optional — 6 slides)
+
+If you’d rather post a document/carousel, each slide maps to a block above:
+
+| Slide | Headline | Body |
 |---|---|---|
-| 1 | LinkedIn → **Start a post** ("Create post") | Paste the **Post text** below |
-| 2 | Same composer → **Add media / image icon** | Upload **`linkedin-1200x627.png`** (or the square for a bigger visual) |
-| 3 | In the post text, the repo URL | Leave it as plain text so LinkedIn builds a preview card (it uses the repo's **social preview** image automatically) |
-| 4 | After posting → **your first comment** | Paste the **First comment** text (keeps the post clean, boosts reach) |
-| 5 | (Optional) Your profile → **Add profile section → Featured → Add a link** | Repo link, title "HP ProLiant ML10 Gen9 display fix" |
-| 6 | (Optional) **Articles** → New article | Use **`docs/dist/ProLiant-ML10-Graphics-fix.pdf`** as the source |
-
-> ⚠️ **Pick one image, not both.** If you paste the repo URL *and* upload an
-> image, LinkedIn shows your uploaded image (good). If you want the automatic
-> **link card** instead, just paste the URL and upload nothing.
+| 1 | **We made our own driver.** | AI-assisted. No vendor driver needed. |
+| 2 | **The problem** | A good server goes dark right after POST over DP → DVI → HDMI. |
+| 3 | **Why “nomodeset” isn’t a fix** | It abandons the GPU: 1024×768, no acceleration. Surrender. |
+| 4 | **The real cause** | The adapter hides the monitor’s EDID → the output is never enabled. |
+| 5 | **What we built** | Our own toolkit: Linux (GRUB/systemd-boot), Windows `.exe`, FreeBSD. |
+| 6 | **The result + link** | 1366×768 @ 60 Hz, accelerated. Repo link + QR. |
 
 ---
 
-## Post text (primary — "engineer, problem-solving" tone)
+## 5. First comment (post it yourself, right after publishing)
 
-> A brand new HPE ProLiant ML10 Gen9, and a monitor that just… stays black.
-> Here's the whole root cause — and the fix I wish existed last week. 🧵
+> For anyone with different gear: the method is the same — find the real connector
+> name (`ls /sys/class/drm`), set `video=<connector>:<mode>@60e`, and remember two
+> port names can be the *same* physical port. If nothing shows at all, boot with
+> `nomodeset` and run `scripts/linux/i915-display-fix.sh discover` — it prints the
+> exact line to add. `apply` always installs a recovery entry, so you can’t get stuck.
 >
-> **The setup:** ML10 Gen9, Intel HD Graphics P530 (Skylake), a 1366×768 monitor
-> on the motherboard's DisplayPort through a passive **DP → DVI → HDMI** chain.
->
-> **The symptom:** picture through BIOS/POST, then nothing. Adding `nomodeset`
-> "works" — but it just abandons the GPU and pins you to a 1024×768 firmware
-> framebuffer with zero acceleration. Not a fix.
->
-> **The root cause:** the passive adapter hides the monitor's **EDID**. The i915
-> driver's GMBUS read fails, falls back to slow GPIO bit-banging, and never
-> enables the output. There's a nasty second trap too: `DP-1` and `HDMI-A-1` are
-> the **same physical DP++ port** — try to force both and you get nothing.
->
-> **The fix:** drop `nomodeset`, hand the kernel the exact connector + mode, and
-> switch off a few Skylake power features:
->
-> ```
-> video=HDMI-A-1:1366x768@60e i915.enable_dc=0 \
-> i915.enable_psr=0 i915.enable_fbc=0 i915.enable_dp_mst=0
-> ```
->
-> **The result:** 1366×768 @ 60 Hz, i915 loaded, hardware accelerated. The screen
-> it was supposed to have all along.
->
-> I turned the whole investigation into a documented, reusable project:
->
-> 🔧 Portable **Linux toolkit** (GRUB **and** systemd-boot): `status`, `detect`,
->   `apply`, `discover`, `revert` — non-destructive, timestamped backups, and a
->   guaranteed `nomodeset` **recovery entry** so you can never end up with a
->   black screen you can't undo.
-> 🪟 **Windows + Windows Server** guide and tooling, including a tiny
->   **DisplayFix.exe** (source included, unsigned — audit and rebuild it if you
->   prefer).
-> 🐧 **FreeBSD** helper, plus hardware / cable / adapter guidance (active vs
->   passive DP adapters, KVMs, alternate outputs).
-> 📄 A **52-page PDF**, real terminal screenshots, per-distro notes, and full
->   troubleshooting.
->
-> If you've fought a "DP works on paper, black on screen" server, this one's for
-> you. Feedback, other boards/distros, and PRs welcome.
->
-> 🔗 https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
->
-> #Linux #WindowsServer #Hardware #SysAdmin #OpenSource #Intel #HPE #ProLiant #i915 #Troubleshooting #DisplayPort
+> (Windows Server folks: `docs/06-windows-server.md`. Cable/adapter questions:
+> `docs/08-hardware-cables-adapters.md`.)
 
 ---
 
-## Post text (short — better for mobile / higher completion rate)
+## 6. Alt text (paste into the image’s “alt text” field)
 
-> Spent longer than I'd like on a **black screen** from a brand-new HPE ProLiant
-> ML10 Gen9 over DisplayPort→HDMI. The cause wasn't the monitor or the cable — a
-> **passive DP→DVI→HDMI adapter hides the monitor's EDID**, so the Intel i915
-> driver never enables the output. `nomodeset` only *pretends* to fix it (1024×768,
-> no acceleration).
->
-> The real fix, on the kernel command line:
->
-> ```
-> video=HDMI-A-1:1366x768@60e i915.enable_dc=0 i915.enable_psr=0 i915.enable_fbc=0
-> ```
->
-> Result: **1366×768 @ 60 Hz, accelerated.**
->
-> I wrote the whole thing up — Linux toolkit (GRUB + systemd-boot, with a safe
-> recovery entry), Windows Server tools, FreeBSD, cable/adapter guidance, and a
-> 52-page PDF.
->
-> 🔗 https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
->
-> #Linux #WindowsServer #SysAdmin #Hardware #OpenSource #i915 #ProLiant
+> Dark title card reading “We made our own driver.” with the subtitle “Old hardware,
+> modern system — fixed at the driver level”, a signal chain DP++ → DVI → HDMI
+> labelled “output never enabled” then “our fix”, chips for Linux, Windows Server,
+> FreeBSD and our own DisplayFix.exe, and a footer “1366×768 @ 60 Hz · our own
+> toolkit, hardware accelerated”.
 
 ---
 
-## First comment (post this yourself, right after publishing)
+## 7. What to upload and where
 
-> For anyone who lands here with a different box: the logic is the same — find
-> the real connector name (`ls /sys/class/drm`), set `video=<connector>:<mode>@60e`,
-> and remember that `DP-1` and `HDMI-A-1` can be the *same* physical port. If
-> nothing shows up at all, boot with `nomodeset` and run
-> `scripts/linux/i915-display-fix.sh discover` — it prints the exact line to add.
-> The `apply` command always installs a recovery entry, so you can't get stuck.
+| Step | Where (LinkedIn) | What |
+|---|---|---|
+| 1 | Home → **Start a post** | Paste **§2 Post text** |
+| 2 | Same composer → **🖼️ image icon** | Upload **`linkedin-1200x627.png`** (or the square) |
+| 3 | In the text, at the end | Paste the repo URL as **plain text** |
+| 4 | Right after publishing → **comment on your own post** | Paste **§5 First comment** |
+| 5 | Profile → **Add profile section → Featured → Add a link** | Repo URL, title “Making our own driver for old hardware” |
+| 6 | Optional: **Write article** | Use **`docs/dist/ProLiant-ML10-Graphics-fix.pdf`** as the source |
+
+> ⚠️ **Pick one:** if you upload an image **and** paste the URL, LinkedIn shows your
+> image. If you want the automatic **link card** (which uses the repo’s social
+> preview), paste only the URL and upload nothing. Don’t do both.
 
 ---
 
-## Alt text (accessibility — paste into the image's "alt text" field)
-
-> Dark title card reading "HP ProLiant ML10 Gen9 — Black screen on DisplayPort→HDMI?" with a signal chain DP++ → DVI → HDMI, the note "EDID dropped / fixed", chips for Linux, Windows Server, FreeBSD and DisplayFix.exe, and the line "1366×768 @ 60 Hz · i915 + hardware acceleration".
-
----
-
-## Re-using on other platforms
+## 8. Re-using on other platforms
 
 | Platform | Image | Notes |
 |---|---|---|
-| **X / Twitter** | `linkedin-1200x627.png` | Fits the 16:9-ish card; add the repo link. |
-| **Mastodon** | `linkedin-1200x627.png` | Same card geometry. |
-| **Reddit** (`r/linux`, `r/sysadmin`, `r/homelab`, `r/HomeServer`) | `linkedin-1080x1080.png` | Use the **short** text as the title, the long text as the body; link in the body to avoid being flagged as a link post. |
-| **Hacker News** | none | Text only; use the short text minus hashtags. |
-| **Server The Home / forums** | `linkedin-1200x627.png` | Paste the long text; BBCode image link if needed. |
+| **X / Twitter** | `linkedin-1200x627.png` | Fits the card; link at the end. |
+| **Mastodon** | `linkedin-1200x627.png` | Same geometry. |
+| **Reddit** (`r/linux`, `r/sysadmin`, `r/homelab`, `r/HomeServer`, `r/linuxhardware`) | `linkedin-1080x1080.png` | Short text as **title**, long text as **body**, link in the body (not a link post). |
+| **Hacker News** | none | Text only; drop the emoji and hashtags. |
+| **ServeTheHome / forums** | `linkedin-1200x627.png` | Paste the long text. |
 
 ### Reddit title suggestions
-
-- `Fixed the black-screen/DP→HDMI issue on an HP ProLiant ML10 Gen9 (Intel P530 / i915) — full write-up + toolkit`
-- `PSA: a passive DP→DVI→HDMI adapter can hide your monitor's EDID and leave a Skylake iGPU output dark`
+- `We wrote our own driver-level fix so a discontinued server runs its monitor on a modern OS`
+- `AI-assisted driver work: fixing a black-screen DP→DVI→HDMI output with our own toolkit`
 
 ---
 
-## Suggested posting rhythm
+## 9. Posting rhythm
 
-1. **Day 0** — the primary post + landscape image.
-2. **Day 0 (+1h)** — first comment (above).
-3. **Day 2–3** — a short "update" post with the **square** image and one concrete
-   lesson (e.g. the `DP-1` / `HDMI-A-1` same-port trap) to catch a second wave.
-4. Keep replies technical and specific; link to the exact doc file
-   (`docs/09-troubleshooting.md`, `docs/06-windows-server.md`) when relevant.
+1. **Day 0** — primary post + landscape image.
+2. **Day 0 (+1h)** — first comment.
+3. **Day 2–3** — a short follow-up with the **square** image and one concrete
+   lesson (e.g. “two port names, one physical port”) for a second wave.
+4. Keep replies technical and specific; link the exact doc file when relevant.

@@ -79,29 +79,29 @@ render() {
   <div class="grid"></div>
 
   <div class="z">
-    <div class="kicker">HP ProLiant ML10 Gen9</div>
-    <h1>Black screen on<br><span class="accent">DisplayPort&rarr;HDMI?</span></h1>
-    <div class="sub">Root-caused and fixed &mdash; native resolution, with acceleration.</div>
+    <div class="kicker">AI-assisted &middot; open source</div>
+    <h1>We made our<br>own <span class="accent">driver.</span></h1>
+    <div class="sub">Old hardware, modern system &mdash; fixed at the driver level.</div>
   </div>
 
   <div class="chain z">
     <span class="node">DP++</span><span class="arrow">&rarr;</span>
     <span class="node">DVI</span><span class="arrow">&rarr;</span>
     <span class="node">HDMI</span>
-    <span class="bad">&#10007; EDID dropped</span>
+    <span class="bad">&#10007; output never enabled</span>
     <span class="arrow">&nbsp;|&nbsp;</span>
-    <span class="good">&#10003; fixed</span>
+    <span class="good">&#10003; our fix</span>
   </div>
 
   <div class="chips z">
     <span class="chip">Linux (GRUB / systemd-boot)</span>
     <span class="chip">Windows Server</span>
     <span class="chip">FreeBSD</span>
-    <span class="chip">DisplayFix.exe</span>
+    <span class="chip">our own DisplayFix.exe</span>
   </div>
 
   <div class="z">
-    <div class="stats"><b>1366&times;768 @ 60&nbsp;Hz</b> &middot; i915 + hardware acceleration</div>
+    <div class="stats"><b>1366&times;768 @ 60&nbsp;Hz</b> &middot; our own toolkit, hardware accelerated</div>
     <div class="url">github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux</div>
     <div class="lic">MIT License &middot; documented &amp; tested</div>
   </div>
