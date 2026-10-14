@@ -45,7 +45,7 @@ jobs:
           sha256sum DisplayFix.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: DisplayFix-exe
           path: DisplayFix.exe
@@ -63,7 +63,7 @@ jobs:
         run: bash scripts/doc/build-pdf.sh
 
       - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ProLiant-ML10-Graphics-fix-pdf
           path: docs/dist/ProLiant-ML10-Graphics-fix.pdf
