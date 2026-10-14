@@ -1,0 +1,15 @@
+Representative excerpt (requires drm.debug=0x1e). Shows that the ML10 Gen9's
+DP ports are wired as dual-mode: B/C/D advertise DP++ / DVI / HDMI, so a passive
+DP->DVI->HDMI chain is *electrically* supported by the GPU - the failure is on
+the EDID/link-detection side, not on the TMDS side.
+
+$ journalctl -b -1 -k | grep "VBT info"
+i915 0000:00:02.0: [drm:intel_bios_init [i915]] Port A VBT info: CRT:0 DVI:0 HDMI:0 DP:1 eDP:1 DSI:0 DP++:0
+i915 0000:00:02.0: [drm:intel_bios_init [i915]] Port B VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+i915 0000:00:02.0: [drm:intel_bios_init [i915]] Port C VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+i915 0000:00:02.0: [drm:intel_bios_init [i915]] Port D VBT info: CRT:0 DVI:1 HDMI:1 DP:1 DP++:1
+
+Meaning:
+  Port A = internal eDP (no panel on a server board).
+  Port B,C,D = external DisplayPort with DP++ (dual-mode) support, i.e. they can
+               drive DVI/HDMI TMDS signals through a passive DP++ adapter.

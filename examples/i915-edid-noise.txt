@@ -1,0 +1,14 @@
+Representative excerpt (requires drm.debug=0x1e). This flood is the smoking gun:
+the DP++ -> DVI -> HDMI chain does NOT pass EDID over the GMBUS (DDC) channel, so
+i915 repeatedly falls back to slow GPIO bit-banging. At boot this is a race, and
+the output can stay dark even though the link is electrically fine.
+
+$ journalctl -b -1 -k | grep "GMBUS EDID read failed"
+i915 0000:00:02.0: [drm:intel_hdmi_set_edid [i915]] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+i915 0000:00:02.0: [drm:intel_hdmi_set_edid [i915]] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+i915 0000:00:02.0: [drm:intel_hdmi_set_edid [i915]] HDMI GMBUS EDID read failed, retry using GPIO bit-banging
+... (repeats)
+
+Also harmless, seen once per boot:
+i915 0000:00:02.0: [drm] [ENCODER:109:DDI A/PHY A] failed to retrieve link info, disabling eDP
+i915 0000:00:02.0: [drm:intel_psr_init [i915]] PSR condition failed: Port not supported

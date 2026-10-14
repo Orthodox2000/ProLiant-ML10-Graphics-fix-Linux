@@ -1,0 +1,22 @@
+# OS / editor cruft
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts (keep the committed .exe, ignore stray objects)
+*.o
+*.obj
+*.pdb
+*.ilk
+*.map
+
+# Local reports / backups produced by the tools
+i915-report.txt
+i915-prevboot-kernel.log
+i915-edid-*.bin
+/var/backups/
+
+# Editor dirs
+.idea/
+.vscode/

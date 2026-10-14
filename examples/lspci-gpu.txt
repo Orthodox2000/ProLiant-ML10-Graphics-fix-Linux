@@ -1,0 +1,5 @@
+$ lspci -nnk | grep -A3 -iE 'VGA|Display'
+00:02.0 VGA compatible controller [0300]: Intel Corporation HD Graphics P530 [8086:191d] (rev 06)
+	DeviceName:  Onboard IGD
+	Subsystem: Intel Corporation HD Graphics P530 [8086:2212]
+	Kernel driver in use: i915

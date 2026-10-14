@@ -1,0 +1,4 @@
+$ dmidecode -s system-product-name; baseboard; bios
+ML10Gen9
+ML10Gen9
+1.010

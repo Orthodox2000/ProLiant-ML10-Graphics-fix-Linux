@@ -1,0 +1,13 @@
+Representative excerpt (requires drm.debug=0x1e). The mode list i915 builds for
+HDMI-A-1 once EDID is (slowly) read. The first entry 1366x768 is issued through
+the standard VESA/CVT timing; the flags (0x20 0x6) mark it as a monitor-specific
+(not "established") timing, which is why EDID reliability matters.
+
+$ journalctl -b -1 -k | grep -A12 'CONNECTOR:120:HDMI-A-1] probed modes'
+i915 0000:00:02.0: [drm:drm_helper_probe_single_connector_modes] Probed mode: "1024x768": 60 65000 1024 1048 1184 1344 768 771 777 806 0x40 0xa
+i915 0000:00:02.0: [drm:drm_helper_probe_single_connector_modes] Probed mode: "1366x768": 60 85885 1366 1439 1583 1800 768 769 772 795 0x20 0x6
+i915 0000:00:02.0: [drm:drm_helper_probe_single_connector_modes] Probed mode: "640x480": 60 25175 640 656 752 800 480 490 492 525 0x40 0xa
+i915 0000:00:02.0: [drm:drm_helper_probe_single_connector_modes] Probed mode: "800x600": 60 40000 800 840 968 1056 600 601 605 628 0x40 0x5
+
+The equivalent Xorg modeline (what you get at 1366x768@60):
+ModeLine "1366x768" 85.89 1366 1439 1583 1800 768 769 772 795 -hsync +vsync

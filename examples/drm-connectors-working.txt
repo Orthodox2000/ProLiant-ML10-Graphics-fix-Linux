@@ -1,0 +1,7 @@
+$ for c in /sys/class/drm/*/status ...
+card1-DP-1: disconnected enabled=disabled mode=
+card1-DP-2: disconnected enabled=disabled mode=
+card1-DP-3: disconnected enabled=disabled mode=
+card1-HDMI-A-1: connected enabled=enabled mode=1366x768
+card1-HDMI-A-2: disconnected enabled=disabled mode=
+card1-HDMI-A-3: disconnected enabled=disabled mode=

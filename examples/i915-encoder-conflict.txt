@@ -1,0 +1,12 @@
+Representative excerpt. When BOTH the DP-name and the HDMI-name of the SAME
+physical port are force-enabled, the driver fights over the shared encoder and
+repeatedly disables the real monitor -> "signal but black screen, cursor flashes".
+
+$ journalctl -b -1 -k | grep -iE "conflicting|update_connector_routing.*Disabling"
+i915 0000:00:02.0: [drm:handle_conflicting_encoders] [ENCODER:109:DDI B/PHY B] in use on [CRTC:58:pipe A], disabling [CONNECTOR:120:HDMI-A-1]
+i915 0000:00:02.0: [drm:update_connector_routing] Disabling [CONNECTOR:110:DP-1]
+i915 0000:00:02.0: [drm:update_connector_routing] Disabling [CONNECTOR:110:DP-1]
+i915 0000:00:02.0: [drm:update_connector_routing] Disabling [CONNECTOR:110:DP-1]
+
+Lesson: DP-1 and HDMI-A-1 are two *names* for one physical port (DDI B).
+Force only the one that matches your cable.
