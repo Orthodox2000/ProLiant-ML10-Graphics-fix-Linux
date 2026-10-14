@@ -7,7 +7,8 @@
 #   make shellcheck -> run shellcheck on all shell scripts (if installed)
 #   make pdf        -> build docs/dist/ProLiant-ML10-Graphics-fix.pdf
 #   make screenshots-> regenerate assets/screenshots/*.png
-#   make docs       -> pdf + screenshots
+#   make banner     -> regenerate assets/social-preview.png
+#   make docs       -> pdf + screenshots + banner
 #   make install    -> install the Linux toolkit to /usr/local/sbin (needs root)
 #   make uninstall  -> remove it
 #   make clean      -> remove build artifacts
@@ -25,7 +26,7 @@ MINGW ?= x86_64-w64-mingw32-gcc
 WIN_OUT := scripts/windows/DisplayFix.exe
 WIN_SRC := scripts/windows/src/DisplayFix.c
 
-.PHONY: all lint shellcheck windows pdf screenshots docs install uninstall clean help
+.PHONY: all lint shellcheck windows pdf screenshots banner docs install uninstall clean help
 
 all: lint
 
@@ -64,7 +65,10 @@ pdf:
 screenshots:
 	bash scripts/doc/make-screenshots.sh
 
-docs: pdf screenshots
+banner:
+	bash scripts/doc/make-banner.sh
+
+docs: pdf screenshots banner
 
 ## --- install ---------------------------------------------------------------
 

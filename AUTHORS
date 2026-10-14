@@ -1,0 +1,38 @@
+# Authors
+
+## Maintainer
+
+    Orthodox2000
+    https://github.com/Orthodox2000
+    <ankitmali2017@gmail.com>
+
+## How to cite
+
+This repository ships a [CITATION.cff](CITATION.cff), so GitHub shows a
+**“Cite this repository”** button and tools such as Zotero can import it.
+
+BibTeX:
+
+```bibtex
+@misc{orthodox2000_ml10gen9_graphics_fix,
+  author       = {Orthodox2000},
+  title        = {HP ProLiant ML10 Gen9 --- Graphics / Display Fix
+                  (Linux, Windows Server \& more)},
+  year         = {2026},
+  version      = {1.1.0},
+  howpublished = {GitHub repository},
+  url          = {https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux},
+  note         = {MIT License}
+}
+```
+
+Plain text:
+
+> Orthodox2000. *HP ProLiant ML10 Gen9 — Graphics / Display Fix (Linux, Windows
+> Server & more)*, version 1.1.0, 2026.
+> https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux
+
+## Contributors
+
+If you tested this on another board, distribution or monitor, add yourself here
+in your pull request. Contributions of any size are welcome.

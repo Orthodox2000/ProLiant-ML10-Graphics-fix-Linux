@@ -1,3 +1,5 @@
+![HP ProLiant ML10 Gen9 — Graphics / Display Fix](assets/social-preview.png)
+
 # HP ProLiant ML10 Gen9 — Graphics / Display Fix (Linux, Windows Server & more)
 
 > **Symptom:** the onboard Intel graphics (HD Graphics **P530**, `8086:191d`)
@@ -71,6 +73,8 @@ ProLiant-ML10-Graphics-fix-Linux/
 ├── README.md                        ← you are here
 ├── QUICKSTART.md                    ← 60-second version
 ├── LICENSE                          ← MIT
+├── CITATION.cff                     ← “Cite this repository” metadata
+├── AUTHORS                          ← maintainer + how to cite
 ├── CHANGELOG.md
 ├── Makefile                         ← build .exe, PDF, screenshots, lint
 ├── install.sh                       ← install Linux toolkit to /usr/local/sbin
@@ -95,10 +99,12 @@ ProLiant-ML10-Graphics-fix-Linux/
 │   │   └── README.md
 │   └── doc/
 │       ├── build-pdf.sh             ← Markdown -> HTML -> Chrome -> PDF
-│       └── make-screenshots.sh      ← render real output as terminal PNGs
+│       ├── make-screenshots.sh      ← render real output as terminal PNGs
+│       └── make-banner.sh           ← render the social-preview banner
 ├── examples/                        ← real logs/cmdlines from the reference machine
 ├── assets/
 │   ├── architecture.svg             ← signal-chain diagram
+│   ├── social-preview.png           ← repo banner (1280x640)
 │   └── screenshots/                 ← generated terminal captures
 └── .github/workflows/ci.yml         ← shellcheck + syntax + Windows build CI
 ```
@@ -181,6 +187,27 @@ The same `nomodeset` + EDID-force-enable technique applies to all of them.
 > ⚠️ The scripts edit the bootloader configuration. Read the relevant docs first,
 > and keep a way to reach a console (physical keyboard or SSH enabled beforehand)
 > if you are changing display settings on a machine you cannot see.
+
+---
+
+## Citation
+
+If this helped you (or you reference it), please cite it. The metadata lives in
+[`CITATION.cff`](CITATION.cff) (GitHub shows a **“Cite this repository”** button),
+and [`AUTHORS`](AUTHORS) has a ready-made BibTeX entry.
+
+```bibtex
+@misc{orthodox2000_ml10gen9_graphics_fix,
+  author       = {Orthodox2000},
+  title        = {HP ProLiant ML10 Gen9 --- Graphics / Display Fix
+                  (Linux, Windows Server \& more)},
+  year         = {2026},
+  version      = {1.1.0},
+  howpublished = {GitHub repository},
+  url          = {https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux},
+  note         = {MIT License}
+}
+```
 
 ---
 

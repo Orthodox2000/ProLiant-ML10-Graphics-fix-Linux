@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this repository, or the technique it documents, please cite it as below."
+title: "HP ProLiant ML10 Gen9 - Graphics / Display Fix (Linux, Windows Server & more)"
+abstract: >-
+  Root-cause analysis and a tested fix for the blank / no-signal display on the
+  HPE ProLiant ML10 Gen9, whose onboard Intel HD Graphics P530 (Skylake) fails
+  over a passive DisplayPort -> DVI -> HDMI adapter chain because the adapter
+  hides the monitor's EDID (the GMBUS read fails and the output is never
+  enabled). Includes a portable Linux bootloader toolkit for GRUB and
+  systemd-boot, Windows and Windows Server driver/tooling plus a native
+  DisplayFix.exe, a FreeBSD helper, hardware/cable guidance, verification and
+  full troubleshooting.
+authors:
+  - name: "Orthodox2000"
+    email: "ankitmali2017@gmail.com"
+    website: "https://github.com/Orthodox2000"
+repository-code: "https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux"
+url: "https://github.com/Orthodox2000/ProLiant-ML10-Graphics-fix-Linux"
+license: MIT
+version: 1.1.0
+date-released: "2026-10-14"
+keywords:
+  - HP ProLiant ML10 Gen9
+  - HPE ProLiant
+  - Intel HD Graphics P530
+  - Skylake
+  - i915
+  - DisplayPort
+  - DP++
+  - EDID
+  - GMBUS
+  - nomodeset
+  - kernel command line
+  - GRUB
+  - systemd-boot
+  - Linux
+  - Windows Server
+  - WDDM
+  - FreeBSD
+  - display troubleshooting

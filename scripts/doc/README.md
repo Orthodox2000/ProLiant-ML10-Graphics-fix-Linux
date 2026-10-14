@@ -6,13 +6,15 @@ These regenerate the documentation artefacts in the repository.
 |---|---|---|
 | [`build-pdf.sh`](build-pdf.sh) | `docs/dist/ProLiant-ML10-Graphics-fix.pdf` + an intermediate `.html` | `python3` with the `markdown` module, Google Chrome/Chromium |
 | [`make-screenshots.sh`](make-screenshots.sh) | `assets/screenshots/*.png` | `python3`, Google Chrome/Chromium |
+| [`make-banner.sh`](make-banner.sh) | `assets/social-preview.png` (1280×640) | Google Chrome/Chromium |
 
 Both are also wired into the top-level `Makefile`:
 
 ```bash
 make pdf          # rebuild the PDF
 make screenshots  # rebuild the terminal screenshots
-make docs         # both
+make banner       # rebuild the social-preview banner
+make docs         # all three
 ```
 
 ## `build-pdf.sh`
