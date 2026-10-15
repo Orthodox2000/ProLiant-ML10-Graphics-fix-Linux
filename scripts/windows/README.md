@@ -9,13 +9,18 @@ explanation.
 | `Get-GraphicsInfo.ps1` | Full inventory: adapter, driver, monitors, EDID, available modes | no |
 | `Set-DisplayResolution.ps1` | List or set resolution/refresh (P/Invoke, no dependencies) | recommended |
 | `Install-IntelGraphicsDriver.ps1` | Locate an extracted Intel INF and stage it with `pnputil` | yes |
-| `Fix-Display.bat` | Double-click wrapper for the above | recommended |
+| `Install-IntelGraphicsDriver.bat` | Double-click wrapper to stage/install the Intel graphics INF (auto-elevates) | recommended |
+| `Fix-Display.bat` | Double-click wrapper for the above (info/list/set/best/install/drivers) | recommended |
 | `DisplayFix.exe` | Native CLI (built from `src/DisplayFix.c`) | recommended |
 | `src/DisplayFix.c` | Source of the `.exe` (transparent, auditable) | — |
 
 ## Quick start
 
 ```cmd
+:: install the Intel HD Graphics P530 driver (auto-finds extracted driver)
+Install-IntelGraphicsDriver.bat
+:: or: Fix-Display.bat install
+
 :: see what you have
 Fix-Display.bat info
 
@@ -27,6 +32,9 @@ Fix-Display.bat set 1366 768
 
 :: or just pick the highest mode the display reports
 Fix-Display.bat best
+
+:: list installed display driver packages
+Fix-Display.bat drivers
 ```
 
 ## `DisplayFix.exe`
@@ -75,6 +83,41 @@ On Windows with MinGW-w64:
 ```cmd
 gcc -O2 -municode -o DisplayFix.exe DisplayFix.c -luser32 -lgdi32 -lshell32
 ```
+
+## Installing the graphics driver (standard, executable steps)
+
+The Intel HD Graphics P530 has **no Windows Server driver**, so the machine
+starts on the *Microsoft Basic Display Adapter*. Installing the Windows 10/11
+x64 Intel driver is a normal driver install — you can do it exactly like any
+other disk/INF driver:
+
+1. Download the Windows 10/11 x64 Intel graphics driver for Skylake (Gen9),
+   e.g. the `15.45.x` series (`igdlh64.inf`). Extract the package (run the
+   installer and let it extract to `C:\SWSetup\...`, or use 7-Zip).
+2. Install it — **any** of these works on Windows 10/11 and Server 2012 R2–2025:
+
+   ```cmd
+   :: one-click (auto-elevates, auto-detects the extracted driver)
+   Install-IntelGraphicsDriver.bat
+
+   :: explicit path
+   Install-IntelGraphicsDriver.bat -Path C:\SWSetup\Intel\Graphics
+
+   :: scriptable equivalent
+   powershell -ExecutionPolicy Bypass -File Install-IntelGraphicsDriver.ps1 -Path C:\SWSetup\Intel\Graphics
+   ```
+
+   The wrapper asks for elevation, locates the INF, and stages it with
+   `pnputil /add-driver <inf> /install`.
+3. If the driver stages but does not bind (the usual "not supported on this
+   OS" case), finish in **Device Manager** → *Display adapters* → *Microsoft
+   Basic Display Adapter* → *Update driver* → *Browse my computer* → *Let me
+   pick* → *Have Disk* → point at the INF → choose **Intel(R) HD Graphics
+   P530** and accept the compatibility warning.
+4. Reboot and verify with `Get-GraphicsInfo.ps1` / `Fix-Display.bat info`.
+
+Because this is a standard `pnputil` driver install, it is fully scriptable —
+suitable for unattended installs, imaging, and Server Core.
 
 ## Notes
 

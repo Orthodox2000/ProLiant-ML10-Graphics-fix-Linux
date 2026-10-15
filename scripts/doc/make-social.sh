@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# make-social.sh - render LinkedIn / social sharing images for the project.
+# make-social.sh - render social sharing images for the project.
 #
 # Produces:
-#   assets/linkedin/linkedin-1200x627.png   landscape (link preview / feed)
-#   assets/linkedin/linkedin-1080x1080.png  square    (feed post)
+#   assets/social/social-1200x627.png   landscape (link preview / feed)
+#   assets/social/social-1080x1080.png  square    (feed post)
 #
 # Needs: Google Chrome / Chromium.
 #
@@ -15,7 +15,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-OUTDIR="$ROOT/assets/linkedin"
+OUTDIR="$ROOT/assets/social"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -79,7 +79,7 @@ render() {
   <div class="grid"></div>
 
   <div class="z">
-    <div class="kicker">AI-assisted &middot; open source</div>
+    <div class="kicker">Open source &middot; driver-level fix</div>
     <h1>We made our<br>own <span class="accent">driver.</span></h1>
     <div class="sub">Old hardware, modern system &mdash; fixed at the driver level.</div>
   </div>
@@ -126,7 +126,7 @@ HTMLDOC
   fi
 }
 
-echo ">> rendering LinkedIn images with $CHROME ..."
-render 1200 627  "$OUTDIR/linkedin-1200x627.png"
-render 1080 1080 "$OUTDIR/linkedin-1080x1080.png"
+echo ">> rendering social images with $CHROME ..."
+render 1200 627  "$OUTDIR/social-1200x627.png"
+render 1080 1080 "$OUTDIR/social-1080x1080.png"
 echo ">> done."

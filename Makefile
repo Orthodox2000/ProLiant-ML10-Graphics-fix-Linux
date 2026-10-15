@@ -8,7 +8,7 @@
 #   make pdf        -> build docs/dist/ProLiant-ML10-Graphics-fix.pdf
 #   make screenshots-> regenerate assets/screenshots/*.png
 #   make banner     -> regenerate assets/social-preview.png
-#   make social     -> regenerate assets/linkedin/*.png
+#   make social     -> regenerate assets/social/*.png
 #   make docs       -> pdf + screenshots + banner + social
 #   make install    -> install the Linux toolkit to /usr/local/sbin (needs root)
 #   make uninstall  -> remove it

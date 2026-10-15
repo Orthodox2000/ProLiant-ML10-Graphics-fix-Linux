@@ -9,6 +9,8 @@ REM    Fix-Display.bat info            full graphics inventory
 REM    Fix-Display.bat list            list all supported modes
 REM    Fix-Display.bat best            set the highest mode
 REM    Fix-Display.bat set 1366 768    set a specific mode
+REM    Fix-Display.bat install [path]  install the Intel graphics driver
+REM    Fix-Display.bat drivers         list installed display driver packages
 REM ============================================================================
 setlocal
 set "HERE=%~dp0"
@@ -25,6 +27,18 @@ if /I "%~1"=="list" (
 )
 if /I "%~1"=="best" (
   %PS% -File "%HERE%Set-DisplayResolution.ps1" -Best
+  goto :end
+)
+if /I "%~1"=="install" (
+  if "%~2"=="" (
+    %PS% -File "%HERE%Install-IntelGraphicsDriver.ps1"
+  ) else (
+    %PS% -File "%HERE%Install-IntelGraphicsDriver.ps1" -Path "%~2"
+  )
+  goto :end
+)
+if /I "%~1"=="drivers" (
+  %PS% -File "%HERE%Install-IntelGraphicsDriver.ps1" -List
   goto :end
 )
 if /I "%~1"=="set" (

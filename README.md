@@ -105,6 +105,7 @@ ProLiant-ML10-Graphics-fix-Linux/
 ├── assets/
 │   ├── architecture.svg             ← signal-chain diagram
 │   ├── social-preview.png           ← repo banner (1280x640)
+│   ├── social/                      ← shareable post images (1200x627, 1080x1080)
 │   └── screenshots/                 ← generated terminal captures
 └── .github/workflows/ci.yml         ← shellcheck + syntax + Windows build CI
 ```

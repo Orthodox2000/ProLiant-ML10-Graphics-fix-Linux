@@ -44,6 +44,10 @@ is a combination of **driver** and **hardware** work.
 | Alternative | Intel **DCH** driver `31.0.101.x` (Skylake support is limited/vendor-specific) |
 | HP option | Search HP support for “ML10 Gen9 Intel Graphics” SoftPaq (may cover Win Server 2012 R2/2016) |
 
+This is a **standard INF/`pnputil` driver install** — the same mechanism as any
+other Windows disk or device driver — so it works on Windows 10/11 and Windows
+Server 2012 R2 → 2025, GUI *or* command line, attended *or* unattended.
+
 ### Method 1 — Device Manager “Have Disk” (works on Server 2016/2019/2022)
 
 1. Download and **extract** the Intel driver package (`.exe` → run it and let it
@@ -81,7 +85,26 @@ Get-PnpDevice -Class Display | Enable-PnpDevice -Confirm:$false
 ```
 
 `scripts/windows/Install-IntelGraphicsDriver.ps1` automates the staging and
-points out the manual Device Manager step if binding is refused.
+points out the manual Device Manager step if binding is refused. Two
+one-click/scriptable entry points ship with it:
+
+```cmd
+:: double-click wrapper: auto-elevates and auto-detects the extracted driver
+scripts\windows\Install-IntelGraphicsDriver.bat
+
+:: or via the general wrapper (install / drivers subcommands)
+Fix-Display.bat install
+Fix-Display.bat install C:\SWSetup\Intel\Graphics
+Fix-Display.bat drivers
+
+:: scriptable, no GUI — suitable for unattended installs / Server Core
+powershell -ExecutionPolicy Bypass -File Install-IntelGraphicsDriver.ps1 -Path C:\SWSetup\Intel\Graphics
+```
+
+If you omit `-Path`, the script searches the usual extraction locations
+(`%SystemDrive%\SWSetup\Intel*`, `%SystemDrive%\Drivers\Intel*`, `Downloads`,
+the current folder). Like any `pnputil` driver, this can be driven from
+`unattend.xml`, an imaging task sequence, or a login script.
 
 ### Method 3 — HP SoftPaq
 
